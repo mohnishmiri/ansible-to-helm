@@ -179,8 +179,8 @@ class ValuesBuilder:
             "routeoffer": "",
             "replicaCount": parsed.replicas,
             "image": {
-                "repository": f"acr.azurecr.io/{self.config.namespace}/{self.config.service_name}",
-                "tag": self.config.app_version,
+                "repository": f"artifact.it.att.com:22609/apm0014313-dkr-attcc-stage/com.att.attcc/{self.config.service_name}",
+                "tag": "",
                 "pullPolicy": parsed.image_pull_policy,
             },
             "imagePullSecrets": [{"name": s} for s in parsed.image_pull_secrets],
@@ -319,6 +319,11 @@ class ValuesBuilder:
 
             override: dict = {
                 "namespace": env_namespace,
+                "image": {
+                    "repository": self._image_repository_for_env(env_name),
+                    "tag": "",
+                    "pullPolicy": parsed.image_pull_policy,
+                },
                 "replicaCount": replica_count,
                 "resources": {
                     "requests": {
@@ -450,6 +455,10 @@ class ValuesBuilder:
     def _get_replicas_for_env(self, env_name: str) -> int:
         defaults = {"dev": 1, "perf": 2, "stage": 2, "uat": 1, "prod": 2, "dr": 2}
         return defaults.get(env_name, 1)
+
+    def _image_repository_for_env(self, env_name: str) -> str:
+        registry_repo = "apm0014313-dkr-attcc-gold" if env_name in ("prod", "dr") else "apm0014313-dkr-attcc-stage"
+        return f"artifact.it.att.com:22609/{registry_repo}/com.att.attcc/{self.config.service_name}"
 
     def _probe_to_dict(self, probe, header_value: str) -> dict:
         if not probe:
