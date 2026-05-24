@@ -197,13 +197,11 @@ class ValuesBuilder:
                 "prometheus.io/path": "/actuator/prometheus",
             },
             "podSecurityContext": {
-                "runAsNonRoot": True,
                 "seccompProfile": {"type": "RuntimeDefault"},
             },
             "securityContext": {
                 "allowPrivilegeEscalation": False,
                 "readOnlyRootFilesystem": False,
-                "runAsNonRoot": True,
                 "capabilities": {"drop": ["ALL"]},
             },
             "service": {
@@ -244,10 +242,6 @@ class ValuesBuilder:
                 "maxReplicas": max(parsed.replicas * 3, 3),
                 "targetCPUUtilizationPercentage": 75,
                 "targetMemoryUtilizationPercentage": 80,
-            },
-            "pdb": {
-                "enabled": False,
-                "minAvailable": 1,
             },
             "deploymentStrategy": {
                 "type": parsed.deployment_strategy,
@@ -350,7 +344,6 @@ class ValuesBuilder:
                     "maxReplicas": 6,
                     "targetCPUUtilizationPercentage": 70,
                 }
-                override["pdb"] = {"enabled": True, "minAvailable": 1}
                 override["ingress"] = {
                     "enabled": True,
                     "annotations": {

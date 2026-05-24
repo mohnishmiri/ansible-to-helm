@@ -95,7 +95,6 @@ class HelmChartGenerator:
             "secret.yaml": self.template_renderer.render_secret(self.config),
             "hpa.yaml": self.template_renderer.render_hpa(self.config),
             "serviceaccount.yaml": self.template_renderer.render_serviceaccount(self.config),
-            "pdb.yaml": self.template_renderer.render_pdb(self.config),
             "ingress.yaml": self.template_renderer.render_ingress(self.config),
             "networkpolicy.yaml": self.template_renderer.render_networkpolicy(self.config),
             "NOTES.txt": self.template_renderer.render_notes(self.config),

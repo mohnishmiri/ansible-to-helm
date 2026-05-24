@@ -330,28 +330,6 @@ metadata:
 {{- end }}
 '''
 
-    def render_pdb(self, config: ConverterConfig) -> str:
-        return '''{{- if .Values.pdb.enabled }}
-apiVersion: policy/v1
-kind: PodDisruptionBudget
-metadata:
-  name: {{ include "fullname" . }}
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
-  labels:
-    {{- include "labels" . | nindent 4 }}
-spec:
-  {{- if .Values.pdb.minAvailable }}
-  minAvailable: {{ .Values.pdb.minAvailable }}
-  {{- end }}
-  {{- if .Values.pdb.maxUnavailable }}
-  maxUnavailable: {{ .Values.pdb.maxUnavailable }}
-  {{- end }}
-  selector:
-    matchLabels:
-      {{- include "selectorLabels" . | nindent 6 }}
-{{- end }}
-'''
-
     def render_ingress(self, config: ConverterConfig) -> str:
         return '''{{- if .Values.ingress.enabled -}}
 apiVersion: networking.k8s.io/v1
@@ -464,7 +442,6 @@ Helm chart for **''' + svc + '''** (''' + stype + ''') on AKS.
   - [Resources](#resource-parameters)
   - [Health Probes](#health-probe-parameters)
   - [Autoscaling](#autoscaling-parameters)
-  - [Pod Disruption Budget](#pod-disruption-budget-parameters)
   - [Deployment Strategy](#deployment-strategy-parameters)
   - [Scheduling](#scheduling-parameters)
   - [Environment Variables](#environment-variable-parameters)
@@ -559,11 +536,9 @@ helm uninstall ''' + svc + ''' -n ''' + ns + '''
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `podAnnotations` | map | `{prometheus.io/scrape: "true", ...}` | Annotations on pods. |
-| `podSecurityContext.runAsNonRoot` | bool | `true` | Enforce non-root execution. |
 | `podSecurityContext.seccompProfile.type` | string | `RuntimeDefault` | Seccomp profile. |
 | `securityContext.allowPrivilegeEscalation` | bool | `false` | Block privilege escalation. |
 | `securityContext.readOnlyRootFilesystem` | bool | `false` | Read-only root filesystem. |
-| `securityContext.runAsNonRoot` | bool | `true` | Non-root at container level. |
 | `securityContext.capabilities.drop` | list | `["ALL"]` | Dropped Linux capabilities. |
 
 ### Service Parameters
@@ -623,14 +598,6 @@ helm uninstall ''' + svc + ''' -n ''' + ns + '''
 | `autoscaling.maxReplicas` | int | `3` | Maximum replicas. |
 | `autoscaling.targetCPUUtilizationPercentage` | int | `75` | CPU target for scaling. |
 | `autoscaling.targetMemoryUtilizationPercentage` | int | `80` | Memory target for scaling. |
-
-### Pod Disruption Budget Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `pdb.enabled` | bool | `true` | Enable PodDisruptionBudget. |
-| `pdb.minAvailable` | int | `1` | Min available pods during disruptions. |
-| `pdb.maxUnavailable` | int | *(unset)* | Max unavailable (mutually exclusive with minAvailable). |
 
 ### Deployment Strategy Parameters
 
