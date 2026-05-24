@@ -1,16 +1,24 @@
+{{- $root := . -}}
+{{- $services := .Values.services | default (list (dict)) -}}
+{{- range $idx, $s := $services }}
+{{- if $idx }}
+---
+{{- end }}
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "fullname" . }}
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  name: {{ include "fullname" $root }}{{ with $s.suffix }}-{{ . }}{{ end }}
+  namespace: {{ $root.Values.namespace | default $root.Release.Namespace }}
   labels:
-    {{- include "labels" . | nindent 4 }}
+    app: {{ if $s.suffix }}{{ printf "%s-%s" ($root.Values.appLabel | default (include "name" $root)) $s.suffix }}{{ else }}{{ $root.Values.appLabel | default (include "name" $root) }}{{ end }}
+    version: {{ $root.Values.image.tag | default $root.Chart.AppVersion | quote }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ $root.Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
+    - port: {{ $root.Values.service.port }}
+      targetPort: {{ $root.Values.service.targetPort }}
       protocol: TCP
       name: http
   selector:
-    {{- include "selectorLabels" . | nindent 4 }}
+    app: {{ if $s.suffix }}{{ printf "%s-%s" ($root.Values.appLabel | default (include "name" $root)) $s.suffix }}{{ else }}{{ $root.Values.appLabel | default (include "name" $root) }}{{ end }}
+{{- end }}

@@ -76,12 +76,15 @@ class ParsedAnsibleData:
     secret_env_vars: list[EnvVar] = field(default_factory=list)
     volumes: list[VolumeSpec] = field(default_factory=list)
     config_files: dict[str, str] = field(default_factory=dict)
+    role_defaults: dict = field(default_factory=dict)
     environment_configs: dict[str, EnvironmentConfig] = field(default_factory=dict)
     labels: dict[str, str] = field(default_factory=dict)
     annotations: dict[str, str] = field(default_factory=dict)
     node_affinity_key: str = ""
     node_affinity_value: str = ""
     jvm_args: dict[str, str] = field(default_factory=dict)
+    deployment_variants: list[dict] = field(default_factory=list)
+    service_variants: list[dict] = field(default_factory=list)
     tomcat_max_threads: int = 200
     tomcat_min_spare_threads: int = 25
 

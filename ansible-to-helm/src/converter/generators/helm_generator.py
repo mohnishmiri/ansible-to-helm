@@ -75,8 +75,10 @@ class HelmChartGenerator:
         self._write_yaml(chart_dir / "values.yaml", model["values"])
         count += 1
 
+        envs_dir = chart_dir / "envs"
+        envs_dir.mkdir(parents=True, exist_ok=True)
         for env_name, env_values in model["env_values"].items():
-            self._write_yaml(chart_dir / f"values-{env_name}.yaml", env_values)
+            self._write_yaml(envs_dir / f"{env_name}.yaml", env_values)
             count += 1
 
         return count

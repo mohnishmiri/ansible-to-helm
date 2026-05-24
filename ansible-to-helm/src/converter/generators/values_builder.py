@@ -4,6 +4,42 @@ from converter.core.config import ConverterConfig
 from converter.core.models import ParsedAnsibleData, ResourceSpec
 
 
+import re
+
+_JINJA_VAR_RE = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
+
+
+def _flatten_vars(d: dict) -> dict[str, str]:
+    flat: dict[str, str] = {}
+    for k, v in d.items():
+        if isinstance(v, (dict, list)):
+            continue
+        if v is None:
+            flat[k] = ""
+        else:
+            flat[k] = str(v)
+    return flat
+
+
+def resolve_placeholders(text: str, variables: dict[str, str], max_passes: int = 6) -> str:
+    """Iteratively replace Ansible-style {{ var }} placeholders using `variables`.
+
+    Unresolved placeholders are left intact so missing values are visible.
+    """
+    if not text or "{{" not in text:
+        return text
+    current = text
+    for _ in range(max_passes):
+        replaced = _JINJA_VAR_RE.sub(
+            lambda m: variables[m.group(1)] if m.group(1) in variables else m.group(0),
+            current,
+        )
+        if replaced == current:
+            break
+        current = replaced
+    return current
+
+
 ENV_MAP = {
     "dev": ["com-att-attcc-dev-merge"],
     "perf": ["com-att-attcc-new-perf"],
@@ -17,6 +53,47 @@ ENV_MAP = {
 class ValuesBuilder:
     def __init__(self, config: ConverterConfig):
         self.config = config
+
+    def _build_variants(self, parsed: ParsedAnsibleData, env_name: str | None = None) -> tuple[list[dict], list[dict]]:
+        """Build deployment and service variant lists for values.yaml or env overrides."""
+        variables = self._merged_vars_for_env(env_name or "dev", parsed)
+
+        def resolve_label(raw: str) -> str:
+            if not raw:
+                return ""
+            resolved = resolve_placeholders(raw, variables)
+            # Drop any remaining unresolved Ansible placeholders so the value is
+            # safe to emit as a label / container name in Helm.
+            cleaned = re.sub(r"\{\{[^}]*\}\}", "", resolved).strip("-").strip()
+            return cleaned
+
+        deployments: list[dict] = []
+        for v in parsed.deployment_variants:
+            entry: dict = {"suffix": v.get("suffix", "")}
+            replicas_var = v.get("replicas_var", "")
+            if replicas_var and replicas_var in variables:
+                try:
+                    entry["replicaCount"] = int(variables[replicas_var])
+                except (TypeError, ValueError):
+                    pass
+            deployments.append(entry)
+
+        services: list[dict] = [{"suffix": v.get("suffix", "")} for v in parsed.service_variants]
+        return deployments, services
+
+    def _merged_vars_for_env(self, env_name: str, parsed: ParsedAnsibleData) -> dict[str, str]:
+        merged = _flatten_vars(parsed.role_defaults)
+        env_cfg = parsed.environment_configs.get(env_name)
+        if env_cfg:
+            merged.update(env_cfg.variables)
+        return merged
+
+    def _resolved_config_files(self, parsed: ParsedAnsibleData, env_name: str) -> dict[str, str]:
+        variables = self._merged_vars_for_env(env_name, parsed)
+        return {
+            name: resolve_placeholders(content, variables)
+            for name, content in parsed.config_files.items()
+        }
 
     def build(self, parsed: ParsedAnsibleData) -> dict:
         dev_resources = self._get_resources_for_env("dev", parsed)
@@ -113,7 +190,9 @@ class ValuesBuilder:
             "envFromSecrets": self._build_secret_env_refs(parsed),
             "volumes": self._build_volumes(parsed),
             "volumeMounts": self._build_volume_mounts(parsed),
-            "configFiles": parsed.config_files,
+            "configFiles": self._resolved_config_files(parsed, "dev"),
+            "deployments": [],
+            "services": [],
             "networkPolicy": {
                 "enabled": False,
                 "ingress": [
@@ -127,6 +206,12 @@ class ValuesBuilder:
                 "port": "http",
             },
         }
+
+        deployments, services = self._build_variants(parsed, "dev")
+        if len(deployments) > 1:
+            values["deployments"] = deployments
+        if len(services) > 1:
+            values["services"] = services
 
         if self.config.service_type == "java-ajsc":
             values["javaOpts"] = self._get_jvm_args_for_env("dev", parsed)
@@ -149,6 +234,7 @@ class ValuesBuilder:
 
     def build_env_values(self, parsed: ParsedAnsibleData) -> dict[str, dict]:
         env_values = {}
+        base_config_files = self._resolved_config_files(parsed, "dev")
 
         for env_name in self.config.environments:
             env_data = parsed.environment_configs.get(env_name, None)
@@ -220,6 +306,20 @@ class ValuesBuilder:
                             }
                         }
                     }
+
+            env_deployments, _ = self._build_variants(parsed, env_name)
+            if len(env_deployments) > 1:
+                override["deployments"] = env_deployments
+
+            if env_name != "dev":
+                env_config_files = self._resolved_config_files(parsed, env_name)
+                diff = {
+                    name: content
+                    for name, content in env_config_files.items()
+                    if base_config_files.get(name) != content
+                }
+                if diff:
+                    override["configFiles"] = diff
 
             env_values[env_name] = override
 

@@ -78,63 +78,73 @@ Service account name.
                     '                  fieldPath: ' + ev.field_ref + '\n'
                 )
 
-        return '''apiVersion: apps/v1
+        return '''{{- $root := . -}}
+{{- $deployments := .Values.deployments | default (list (dict)) -}}
+{{- range $idx, $d := $deployments }}
+{{- if $idx }}
+---
+{{- end }}
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "fullname" . }}
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  name: {{ include "fullname" $root }}{{ with $d.suffix }}-{{ . }}{{ end }}
+  namespace: {{ $root.Values.namespace | default $root.Release.Namespace }}
   labels:
-    {{- include "labels" . | nindent 4 }}
+    app: {{ if $d.suffix }}{{ printf "%s-%s" ($root.Values.appLabel | default (include "name" $root)) $d.suffix }}{{ else }}{{ $root.Values.appLabel | default (include "name" $root) }}{{ end }}
+    version: {{ $root.Values.image.tag | default $root.Chart.AppVersion | quote }}
+    {{- if $root.Values.routeoffer }}
+    routeoffer: {{ $root.Values.routeoffer }}
+    {{- end }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  {{- if not $root.Values.autoscaling.enabled }}
+  replicas: {{ $d.replicaCount | default $root.Values.replicaCount }}
   {{- end }}
   strategy:
-    type: {{ .Values.deploymentStrategy.type }}
-    {{- if eq .Values.deploymentStrategy.type "RollingUpdate" }}
+    type: {{ $root.Values.deploymentStrategy.type }}
+    {{- if eq $root.Values.deploymentStrategy.type "RollingUpdate" }}
     rollingUpdate:
-      maxUnavailable: {{ .Values.deploymentStrategy.rollingUpdate.maxUnavailable }}
-      maxSurge: {{ .Values.deploymentStrategy.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ $root.Values.deploymentStrategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ $root.Values.deploymentStrategy.rollingUpdate.maxSurge }}
     {{- end }}
-  minReadySeconds: {{ .Values.minReadySeconds }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  minReadySeconds: {{ $root.Values.minReadySeconds }}
+  revisionHistoryLimit: {{ $root.Values.revisionHistoryLimit }}
   selector:
     matchLabels:
-      {{- include "selectorLabels" . | nindent 6 }}
+      app: {{ if $d.suffix }}{{ printf "%s-%s" ($root.Values.appLabel | default (include "name" $root)) $d.suffix }}{{ else }}{{ $root.Values.appLabel | default (include "name" $root) }}{{ end }}
   template:
     metadata:
       annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        {{- with .Values.podAnnotations }}
+        checksum/config: {{ include (print $root.Template.BasePath "/configmap.yaml") $root | sha256sum }}
+        {{- with $root.Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
       labels:
-        {{- include "selectorLabels" . | nindent 8 }}
+        app: {{ if $d.suffix }}{{ printf "%s-%s" ($root.Values.appLabel | default (include "name" $root)) $d.suffix }}{{ else }}{{ $root.Values.appLabel | default (include "name" $root) }}{{ end }}
     spec:
-      serviceAccountName: {{ include "serviceAccountName" . }}
-      {{- with .Values.imagePullSecrets }}
+      serviceAccountName: {{ include "serviceAccountName" $root }}
+      {{- with $root.Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.podSecurityContext }}
+      {{- with $root.Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.affinity }}
+      {{- if $root.Values.affinity }}
       affinity:
-        {{- toYaml .Values.affinity | nindent 8 }}
+        {{- toYaml $root.Values.affinity | nindent 8 }}
       {{- end }}
-      {{- with .Values.nodeSelector }}
+      {{- with $root.Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with $root.Values.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.volumes }}
+      {{- if $root.Values.volumes }}
       volumes:
-        {{- range .Values.volumes }}
+        {{- range $root.Values.volumes }}
         - name: {{ .name }}
           {{- if eq .type "configmap" }}
           configMap:
@@ -157,29 +167,29 @@ spec:
         {{- end }}
       {{- end }}
       containers:
-        - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
+        - name: {{ if $d.suffix }}{{ printf "%s-%s" $root.Chart.Name $d.suffix }}{{ else }}{{ $root.Chart.Name }}{{ end }}
+          {{- with $root.Values.securityContext }}
           securityContext:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ $root.Values.image.repository }}:{{ $root.Values.image.tag | default $root.Chart.AppVersion }}"
+          imagePullPolicy: {{ $root.Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.targetPort }}
+              containerPort: {{ $root.Values.service.targetPort }}
               protocol: TCP
           env:
-            {{- range .Values.env }}
+            {{- range $root.Values.env }}
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
-            {{- if .Values.envOverrides }}
-            {{- range .Values.envOverrides }}
+            {{- if $root.Values.envOverrides }}
+            {{- range $root.Values.envOverrides }}
             - name: {{ .name }}
               value: {{ .value | quote }}
             {{- end }}
             {{- end }}
-            {{- range .Values.envFromSecrets }}
+            {{- range $root.Values.envFromSecrets }}
             {{- $secretName := .secretName }}
             {{- range .keys }}
             - name: {{ .name }}
@@ -190,43 +200,52 @@ spec:
             {{- end }}
             {{- end }}
 ''' + field_ref_envs + '''          volumeMounts:
-            {{- range .Values.volumeMounts }}
+            {{- range $root.Values.volumeMounts }}
             - name: {{ .name }}
               mountPath: {{ .mountPath }}
               {{- if .readOnly }}
               readOnly: {{ .readOnly }}
               {{- end }}
             {{- end }}
-          {{- with .Values.livenessProbe }}
+          {{- with $root.Values.livenessProbe }}
           livenessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- with .Values.readinessProbe }}
+          {{- with $root.Values.readinessProbe }}
           readinessProbe:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml $root.Values.resources | nindent 12 }}
       restartPolicy: Always
+{{- end }}
 '''
 
     def render_service(self, config: ConverterConfig, parsed: ParsedAnsibleData) -> str:
-        return '''apiVersion: v1
+        return '''{{- $root := . -}}
+{{- $services := .Values.services | default (list (dict)) -}}
+{{- range $idx, $s := $services }}
+{{- if $idx }}
+---
+{{- end }}
+apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "fullname" . }}
-  namespace: {{ .Values.namespace | default .Release.Namespace }}
+  name: {{ include "fullname" $root }}{{ with $s.suffix }}-{{ . }}{{ end }}
+  namespace: {{ $root.Values.namespace | default $root.Release.Namespace }}
   labels:
-    {{- include "labels" . | nindent 4 }}
+    app: {{ if $s.suffix }}{{ printf "%s-%s" ($root.Values.appLabel | default (include "name" $root)) $s.suffix }}{{ else }}{{ $root.Values.appLabel | default (include "name" $root) }}{{ end }}
+    version: {{ $root.Values.image.tag | default $root.Chart.AppVersion | quote }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ $root.Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.service.targetPort }}
+    - port: {{ $root.Values.service.port }}
+      targetPort: {{ $root.Values.service.targetPort }}
       protocol: TCP
       name: http
   selector:
-    {{- include "selectorLabels" . | nindent 4 }}
+    app: {{ if $s.suffix }}{{ printf "%s-%s" ($root.Values.appLabel | default (include "name" $root)) $s.suffix }}{{ else }}{{ $root.Values.appLabel | default (include "name" $root) }}{{ end }}
+{{- end }}
 '''
 
     def render_configmap(self, config: ConverterConfig, parsed: ParsedAnsibleData) -> str:

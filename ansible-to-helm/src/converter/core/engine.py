@@ -132,6 +132,7 @@ class ConversionEngine:
             parsed.tomcat_min_spare_threads = int(defaults["server_tomcat_min_Spare_Threads"])
 
         parsed.config_files = role_data.get("config_files", {})
+        parsed.role_defaults = defaults
 
     def _merge_k8s_data(self, parsed, k8s_data):
         if "env_vars" in k8s_data:
@@ -154,3 +155,7 @@ class ConversionEngine:
             parsed.service_port = k8s_data["service_port"]
         if "service_type" in k8s_data:
             parsed.service_type_k8s = k8s_data["service_type"]
+        if "deployment_variants" in k8s_data:
+            parsed.deployment_variants = k8s_data["deployment_variants"]
+        if "service_variants" in k8s_data:
+            parsed.service_variants = k8s_data["service_variants"]

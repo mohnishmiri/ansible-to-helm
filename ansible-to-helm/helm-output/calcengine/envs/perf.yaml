@@ -1,4 +1,4 @@
-namespace: com-att-attcc-preprod
+namespace: com-att-attcc-new-perf
 replicaCount: 2
 resources:
   requests:
@@ -37,3 +37,38 @@ affinity:
           operator: In
           values:
           - ruleengine
+deployments:
+- suffix: ''
+  replicaCount: 1
+- suffix: recalc-rtl
+  replicaCount: 1
+- suffix: recalc-arnr3pl
+  replicaCount: 1
+- suffix: calc-vab
+  replicaCount: 1
+- suffix: dataload
+  replicaCount: 1
+- suffix: recalc-nds
+  replicaCount: 0
+- suffix: recalc-sd
+  replicaCount: 0
+- suffix: recalc-dap
+  replicaCount: 0
+- suffix: recalc-fn
+  replicaCount: 0
+- suffix: recalc-ar
+  replicaCount: 0
+- suffix: recalc-nr
+  replicaCount: 0
+- suffix: recalc-3pl
+  replicaCount: 0
+- suffix: vab-calc-ar
+  replicaCount: 0
+- suffix: vab-calc-dap
+  replicaCount: 0
+- suffix: vab-calc-sd
+  replicaCount: 0
+- suffix: vab-calc-nds
+  replicaCount: 0
+- suffix: vab-calc-fn
+  replicaCount: 0

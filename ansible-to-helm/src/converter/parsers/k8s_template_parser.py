@@ -14,18 +14,82 @@ class K8sTemplateParser(BaseParser):
     def parse(self) -> dict[str, Any]:
         result = {}
 
-        deployment_file = self.path / "deployment.yaml"
-        if deployment_file.exists():
-            result.update(self._parse_deployment(deployment_file))
+        deployment_files = sorted(self.path.glob("deployment*.yaml"))
+        if deployment_files:
+            primary = deployment_files[0]
+            result.update(self._parse_deployment(primary))
+            variants: list[dict] = []
+            for f in deployment_files:
+                variants.extend(self._extract_variants(self._read_file(f), kind="Deployment"))
+            result["deployment_variants"] = variants
 
         service_file = self.path / "service.yaml"
         if service_file.exists():
             result.update(self._parse_service(service_file))
+            result["service_variants"] = self._extract_variants(
+                self._read_file(service_file), kind="Service"
+            )
 
         return result
 
+    def _extract_variants(self, content: str, kind: str) -> list[dict]:
+        """Split a multi-document YAML and pull out variant identifiers per block.
+
+        Returns a list of {suffix, app_label, container_name, replicas_var}.
+        Empty suffix == primary variant.
+        """
+        blocks = re.split(r"(?m)^---\s*$", content)
+        variants: list[dict] = []
+        for block in blocks:
+            if f"kind: {kind}" not in block and f"kind:{kind}" not in block:
+                continue
+            name_match = re.search(r"^\s*name:\s*(.+)$", block, re.MULTILINE)
+            if not name_match:
+                continue
+            name_template = name_match.group(1).strip()
+            suffix = self._derive_suffix(name_template)
+
+            app_match = re.search(r"^\s*app:\s*(.+)$", block, re.MULTILINE)
+            app_label = app_match.group(1).strip() if app_match else ""
+
+            container_name = ""
+            if kind == "Deployment":
+                c_match = re.search(r"containers:\s*\n\s*-\s*name:\s*(.+)$", block, re.MULTILINE)
+                if c_match:
+                    container_name = c_match.group(1).strip()
+
+            replicas_var = ""
+            rep_match = re.search(r"replicas:\s*\{\{\s*([A-Za-z_][\w]*)\s*\}\}", block)
+            if rep_match:
+                replicas_var = rep_match.group(1)
+
+            variants.append({
+                "suffix": suffix,
+                "app_label_raw": app_label,
+                "container_name_raw": container_name,
+                "replicas_var": replicas_var,
+            })
+        return variants
+
+    def _derive_suffix(self, name_template: str) -> str:
+        """Pull the variant suffix from a metadata.name like
+        '{{ANS_msname}}-recalc-rtl-{{version_major_minor}}-{{ROUTEOFFER|lower}}'."""
+        # Strip any leading {{...}} placeholder and following dash.
+        stripped = re.sub(r"^\{\{[^}]+\}\}-?", "", name_template)
+        # Strip trailing {{...}} placeholders and their leading dashes.
+        while True:
+            new = re.sub(r"-?\{\{[^}]+\}\}\s*$", "", stripped)
+            if new == stripped:
+                break
+            stripped = new
+        return stripped.strip("-").strip()
+
     def _parse_deployment(self, filepath: Path) -> dict[str, Any]:
-        content = self._read_file(filepath)
+        raw = self._read_file(filepath)
+        # Multi-doc deployment files describe variants that share the same pod
+        # template — only parse the first document so we don't duplicate
+        # volumes / env vars / probes once per variant.
+        content = re.split(r"(?m)^---\s*$", raw, maxsplit=1)[0]
         result: dict[str, Any] = {}
 
         port_match = re.search(r"containerPort:\s*(\d+)", content)
@@ -55,7 +119,8 @@ class K8sTemplateParser(BaseParser):
         return result
 
     def _parse_service(self, filepath: Path) -> dict[str, Any]:
-        content = self._read_file(filepath)
+        raw = self._read_file(filepath)
+        content = re.split(r"(?m)^---\s*$", raw, maxsplit=1)[0]
         result: dict[str, Any] = {}
 
         port_match = re.search(r"port:\s*(\d+)", content)

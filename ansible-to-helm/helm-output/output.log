@@ -1,0 +1,6 @@
+==> Linting calcengine
+Error unable to check Chart.yaml file in chart: stat calcengine/Chart.yaml: no such file or directory
+
+==> Linting ./ansible-to-helm/helm-output/calcengine
+[INFO] Chart.yaml: icon is recommended
+

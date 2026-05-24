@@ -1,0 +1,134 @@
+namespace: com-att-attcc-dr
+replicaCount: 2
+resources:
+  requests:
+    memory: 9Gi
+    cpu: '2'
+  limits:
+    memory: 10Gi
+    cpu: '4'
+javaOpts: -Xms512m -Xmx2048m -XX:MetaspaceSize=512m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode
+  -Dhttp.nonProxyHosts=*.windows.net -Dhttps.nonProxyHosts=*.windows.net -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+pdb:
+  enabled: true
+  minAvailable: 1
+ingress:
+  enabled: true
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+deployments:
+- suffix: ''
+  replicaCount: 1
+- suffix: recalc-rtl
+  replicaCount: 1
+- suffix: recalc-arnr3pl
+  replicaCount: 1
+- suffix: calc-vab
+  replicaCount: 1
+- suffix: dataload
+  replicaCount: 1
+- suffix: recalc-nds
+  replicaCount: 0
+- suffix: recalc-sd
+  replicaCount: 0
+- suffix: recalc-dap
+  replicaCount: 0
+- suffix: recalc-fn
+  replicaCount: 0
+- suffix: recalc-ar
+  replicaCount: 0
+- suffix: recalc-nr
+  replicaCount: 0
+- suffix: recalc-3pl
+  replicaCount: 0
+- suffix: vab-calc-ar
+  replicaCount: 0
+- suffix: vab-calc-dap
+  replicaCount: 0
+- suffix: vab-calc-sd
+  replicaCount: 0
+- suffix: vab-calc-nds
+  replicaCount: 0
+- suffix: vab-calc-fn
+  replicaCount: 0
+configFiles:
+  cadi.properties: "basic_realm=csp.att.com\nbasic_warn=TRUE\n \ncadi_loglevel=WARN\n\
+    \ncadi_keyfile=/opt/att/ajsc/aaf/keyfile\n\n\n \ncadi_protocols=TLSv1.1,TLSv1.2\n\
+    \naaf_env=PROD\n\n#aaf_url=https://DME2RESOLVE/service=com.att.authz.AuthorizationService/version=2.0/envContext=TEST/routeOffer=BAU_SE\n\
+    #AFT_LATITUDE={{AFTLATITUDE}}\n#AFT_LONGITUDE={{AFTLONGITUDE}}\n#AFT_ENVIRONMENT={{AFTENVIRONMENT}}\n\
+    \naaf_url=https://aaf-azure.it.att.com\naaf_locate_url=https://aaf-azure.it.att.com/locate\n\
+    aaf_lur=com.att.cadi.aaf.v2_0.AAFLurPerm\n \n#Commenting these 2 lines until CADI\
+    \ fixes Authorization issue in 1.4.2 cadi jars - CPFSDKJAVA-1830\n#aaf_oauth2_token_url=https://aaf-azure.it.att.com/locate/com.att.aaf.token:2.0/token\n\
+    #aaf_oauth2_introspect_url=https://aaf-azure.it.att.com/locate/com.att.aaf.introspect:2.0/introspect\n\
+    \naaf_id=${AAF_ID}\naaf_password=${AAF_PASSWORD}\n\naaf_timeout=5000\n\ncadi_latitude={{AFTLATITUDE}}\n\
+    cadi_longitude={{AFTLONGITUDE}}"
+  aft.properties: 'com.att.aft.discovery.client.environment={{AFTENVIRONMENT}}
+
+    com.att.aft.discovery.client.latitude={{AFTLATITUDE}}
+
+    com.att.aft.discovery.client.longitude={{AFTLONGITUDE}}
+
+    com.att.aft.keyStore=/opt/att/ajsc/secret/aft.jks
+
+    com.att.aft.keyStorePassword=CHANGEME
+
+    com.att.aft.trustStore=/opt/att/ajsc/secret/aft.jks
+
+    com.att.aft.trustStorePassword=CHANGEME
+
+    com.att.aft.alias=fusionbus'
+  wmqLog.properties: 'java.naming.factory.initial=com.att.aft.jms.FusionCtxFactory
+
+    java.naming.provider.url=aftdsc://{{AFTENVIRONMENT}}/{{AFTLATITUDE}}/{{AFTLONGITUDE}}
+
+    jms.queue.connection.factory=aftdsc://{{AFTENVIRONMENT}}/?service=CSILOG,version=4.0,bindingType=fusionBus,envContext=P,D6A=YES
+
+    jms.session.max=10
+
+    jms.delivery.mode=2
+
+    jms.timeout=900000
+
+    jms.priority=2
+
+    JMS.user=
+
+    JMS.password='
+  application.properties: "info.build.artifact=@project.artifactId@\ninfo.build.name=@project.name@\n\
+    info.build.description=@project.description@\ninfo.build.version=@project.version@\n\
+    info.build.groupId=@project.groupId@\nlogging.level.root=INFO\n\nlogging.level.org.mongodb=off\n\
+    \neco.seed.name=ajsc7_jersey\neco.seed.version=7.14.1-RELEASE\neco.seed.created.datetime=Tue\
+    \ May 17 16:30:06 UTC 2022\n\nserver.servlet.contextPath=/\nserver.servlet-path=/\n\
+    spring.jersey.application-path=/calcengine/v1\nserver.routingPath=/\nmots.application.acronym=CSI\n\
+    platform.identifier=AJSC7_JERSEY\nspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration\n\
+    \nlogging.pattern.console=%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr($\
+    \ threadId: {PID:- }){magenta} %clr(---){faint} %clr([ hostname: %X{hostname}\
+    \ serviceName: %X{serviceName} version: %X{version} transactionId: %X{transactionId}\
+    \ requestTimeStamp: %X{requestTimestamp}  responseTimeStamp: %X{responseTimestamp}\
+    \ duration: %X{duration}]){yellow} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan}\
+    \ %clr(:){faint} %m%n%wex\n\n#The max number of active threads in this pool\n\
+    server.tomcat.max-threads=200\n#The minimum number of threads always kept alive\n\
+    server.tomcat.min-Spare-Threads=25\n#The number of milliseconds before an idle\
+    \ thread shutsdown, unless the number of active threads are less or equal to minSpareThreads\n\
+    server.tomcat.max-idle-time=60000\n\n#for changing the tomcat port...\n#server.port=8081\n\
+    \n#Management server port for accessing actuator endpoints...\nmanagement.server.port=8080\n\
+    \n# Expose endpoints to web...\nmanagement.endpoints.web.exposure.include=info,health,prometheus\n\
+    \n# Turn off all endpoints by default and enable only info, health and Prometheus\
+    \ only...\nmanagement.endpoints.enabled-by-default=false\nmanagement.endpoint.info.enabled=true\n\
+    management.endpoint.health.enabled=true\nmanagement.endpoint.prometheus.enabled=true\n\
+    \n#Servlet context parameters\nserver.context_parameters.p-name=value #context\
+    \ parameter with p-name as key and value as value.\n\n#Service System Properties.\
+    \ Please, place any Service related System Properties below.\n#masterEndPointOverrideMap.location=etc/MasterEndPointOverrideMap.xml\n\
+    #adapterDME2UrlMap.location=etc/AdapterDME2UrlMap.xml\n#AdapterMap.location=etc/Adapter.map\n\
+    #defaultDME2EnvContext=TEST\n#com.att.aft.dme2.jms.stickySelectorKey=\n\n#path\
+    \ for application environment file \n#env.path=etc/env-application.properties\n\
+    #aaf.roles.properties=etc-local/AAFUserRoles.properties \n#cadi.properties.location=etc-local/cadi.properties\n\
+    \n# make this true for AAF authentication and place cadi.properties into etc folder\n\
+    #aaf.enabled=false\n\n# set to true to enable version proxy\n#ivp.enabled=false\n\
+    \n"

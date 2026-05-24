@@ -208,68 +208,6 @@ volumeMounts:
 - name: aafvolume
   mountPath: /opt/att/ajsc/aaf
 configFiles:
-  aft.properties: 'com.att.aft.discovery.client.environment={{com_att_aft_discovery_client_environment}}
-
-    com.att.aft.discovery.client.latitude={{com_att_aft_discovery_client_latitude}}
-
-    com.att.aft.discovery.client.longitude={{com_att_aft_discovery_client_longitude}}
-
-    com.att.aft.keyStore={{com_att_aft_keyStore}}
-
-    com.att.aft.keyStorePassword={{com_att_aft_keyStorePassword}}
-
-    com.att.aft.trustStore={{com_att_aft_trustStore}}
-
-    com.att.aft.trustStorePassword={{com_att_aft_trustStorePassword}}
-
-    com.att.aft.alias={{com_att_aft_alias}}'
-  application.properties: "info.build.artifact=@project.artifactId@\ninfo.build.name=@project.name@\n\
-    info.build.description=@project.description@\ninfo.build.version=@project.version@\n\
-    info.build.groupId=@project.groupId@\nlogging.level.root={{ logging_level_root\
-    \ }}\n\neco.seed.name=ajsc7_jersey\neco.seed.version=7.14.0-RELEASE\neco.seed.created.datetime=Wed\
-    \ May  5 22:15:24 UTC 2021\n\nserver.servlet.contextPath=/\nserver.servlet-path=/\n\
-    spring.jersey.application-path=/administration/v1\nserver.routingPath=/\nmots.application.acronym={{mots_application_acronym}}\n\
-    platform.identifier=AJSC7_JERSEY\nspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration\n\
-    \nlogging.pattern.console=%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr($\
-    \ threadId: {PID:- }){magenta} %clr(---){faint} %clr([ hostname: %X{hostname}\
-    \ serviceName: %X{serviceName} version: %X{version} transactionId: %X{transactionId}\
-    \ requestTimeStamp: %X{requestTimestamp}  responseTimeStamp: %X{responseTimestamp}\
-    \ duration: %X{duration}]){yellow} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan}\
-    \ %clr(:){faint} %m%n%wex\n\n#The max number of active threads in this pool\n\
-    server.tomcat.max-threads={{ server_tomcat_max_threads }}\n#The minimum number\
-    \ of threads always kept alive\nserver.tomcat.min-Spare-Threads={{ server_tomcat_min_Spare_Threads\
-    \ }}\n#The number of milliseconds before an idle thread shutsdown, unless the\
-    \ number of active threads are less or equal to minSpareThreads\nserver.tomcat.max-idle-time={{\
-    \ server_tomcat_max_idle_time }}\n\n#for changing the tomcat port...\n#server.port=8081\n\
-    \n#Management server port for accessing actuator endpoints...\nmanagement.server.port={{server_health_port}}\n\
-    \n# Expose endpoints to web...\nmanagement.endpoints.web.exposure.include=info,health,prometheus\n\
-    \n# Turn off all endpoints by default and enable only info, health and Prometheus\
-    \ only...\nmanagement.endpoints.enabled-by-default=false\nmanagement.endpoint.info.enabled=true\n\
-    management.endpoint.health.enabled=true\nmanagement.endpoint.prometheus.enabled=true\n\
-    \n#Servlet context parameters\nserver.context_parameters.p-name={{ server_context_parameters_p_name\
-    \ }} #context parameter with p-name as key and value as value.\n\n#Service System\
-    \ Properties. Please, place any Service related System Properties below.\n#masterEndPointOverrideMap.location=etc/MasterEndPointOverrideMap.xml\n\
-    #adapterDME2UrlMap.location=etc/AdapterDME2UrlMap.xml\n#AdapterMap.location=etc/Adapter.map\n\
-    #defaultDME2EnvContext=TEST\n#com.att.aft.dme2.jms.stickySelectorKey=\n\n#path\
-    \ for application environment file \n#env.path=etc/env-application.properties\n\
-    #aaf.roles.properties=etc-local/AAFUserRoles.properties \n#cadi.properties.location=etc-local/cadi.properties\n\
-    \n# make this true for AAF authentication and place cadi.properties into etc folder\n\
-    #aaf.enabled=false\n\n# set to true to enable version proxy\n#ivp.enabled=false\n\
-    \n"
-  cadi.properties: "basic_realm={{cadi_basic_realm}}\nbasic_warn={{cadi_basic_warn}}\n\
-    \ \ncadi_loglevel={{cadi_loglevel}}\n\ncadi_keyfile={{cadi_keyfile_path}}\n\n\n\
-    \ \ncadi_protocols={{cadi_protocols}}\n\naaf_env={{aaf_env_var}}\n\n#aaf_url=https://DME2RESOLVE/service=com.att.authz.AuthorizationService/version=2.0/envContext=TEST/routeOffer=BAU_SE\n\
-    #AFT_LATITUDE={{AFTLATITUDE}}\n#AFT_LONGITUDE={{AFTLONGITUDE}}\n#AFT_ENVIRONMENT={{AFTENVIRONMENT}}\n\
-    \naaf_url={{cadi_aaf_url}}\naaf_locate_url={{cadi_aaf_locate_url}}\naaf_lur={{cadi_aaf_lur}}\n\
-    \ \n#Commenting these 2 lines until CADI fixes Authorization issue in 1.4.2 cadi\
-    \ jars - CPFSDKJAVA-1830\n#aaf_oauth2_token_url={{cadi_aaf_oauth2_token_url}}\n\
-    #aaf_oauth2_introspect_url={{cadi_aaf_oauth2_introspect_url}}\n\naaf_id={{ cadi_aaf_id\
-    \ }}\naaf_password={{ cadi_aaf_password }}\n\naaf_timeout={{cadi_aaf_timeout}}\n\
-    \ncadi_latitude={{AFT_LATITUDE}}\ncadi_longitude={{AFT_LONGITUDE}}"
-  errorMessages.properties: "#Below is the sample format of error/exception response.\
-    \ It should always have 3 tokens. \n#httpStatusCode should be valid http response\
-    \ status code ranging from 400 - 599 \n\n#failureCode=errorCode|errorDescription|httpStatusCode\n\
-    demoFailure=SVC9999|Sample error record for testing|400\n"
   logback.xml: "<configuration scan=\"true\" scanPeriod=\"3 seconds\">\n\t\n\t<!--\
     \ this will disable printing the logback startup messages -->\n\t<!-- you may\
     \ need to comment it out to troubleshoot logging issues -->\n\t<statusListener\
@@ -277,18 +215,17 @@ configFiles:
     \ enables overriding of log levels in the logging-override.properties file -->\n\
     \t<contextListener class=\"com.att.api.framework.common.logging.override.ContextListener\"\
     \ />\n\n\t<!-- set this to true to send json-formatted log entries to the console-->\n\
-    \t<property name=\"USE_1T_LOGGING\" value=\"{{logging_enable_1T}}\" />  <!-- true\
-    \ -->\n\n\t<!-- setting this to true will format the log entries easier to read,\
-    \ but make sure it is false when deployed -->\n\t<property name=\"USE_1T_PRETTY_PRINT\"\
-    \ value=\"{{logging_enable_1T_prettyprint}}\" />  <!-- false -->\n\n\t<!-- set\
-    \ this to true to send audit and performance tracking log entries in legacy format\
-    \ to console when USE_DASHBOARD_LOGGING is set to false -->\n\t<property name=\"\
-    USE_LEGACY_LOGGING\" value=\"{{logging_enable_legacy}}\" />  <!-- false -->\n\n\
-    \t<!-- set this to true to send audit and performance tracking log entries in\
-    \ legacy format to the csi dashboard -->\n\t<property name=\"USE_DASHBOARD_LOGGING\"\
-    \ value=\"{{logging_enable_csidashboard}}\" />  <!-- false -->\n\t \n\t<!-- setting\
-    \ this to true will hide the SPI data from logs, but make sure it is true when\
-    \ deployed -->\n    <property name=\"USE_SECURITY_FILTER\" value=\"{{logging_enable_securityfilter}}\"\
+    \t<property name=\"USE_1T_LOGGING\" value=\"true\" />  <!-- true -->\n\n\t<!--\
+    \ setting this to true will format the log entries easier to read, but make sure\
+    \ it is false when deployed -->\n\t<property name=\"USE_1T_PRETTY_PRINT\" value=\"\
+    false\" />  <!-- false -->\n\n\t<!-- set this to true to send audit and performance\
+    \ tracking log entries in legacy format to console when USE_DASHBOARD_LOGGING\
+    \ is set to false -->\n\t<property name=\"USE_LEGACY_LOGGING\" value=\"false\"\
+    \ />  <!-- false -->\n\n\t<!-- set this to true to send audit and performance\
+    \ tracking log entries in legacy format to the csi dashboard -->\n\t<property\
+    \ name=\"USE_DASHBOARD_LOGGING\" value=\"false\" />  <!-- false -->\n\t \n\t<!--\
+    \ setting this to true will hide the SPI data from logs, but make sure it is true\
+    \ when deployed -->\n    <property name=\"USE_SECURITY_FILTER\" value=\"true\"\
     \ /> <!-- true -->\n\n\t\n\t<!-- iLib related configs -->\n\t<property name=\"\
     defaultPatterniLibLogging\" value=\"%m%n\" />\n\n\t<appender name=\"STDOUTiLibLogging\"\
     \ class=\"ch.qos.logback.core.ConsoleAppender\">\n\t       <encoder>\n\t     \
@@ -313,13 +250,13 @@ configFiles:
     )'>\n            <then>\n                <appender name=\"asyncWMQAuditAppender\"\
     \n                    class=\"com.att.api.framework.common.logback.jmsappender.AsyncJmsAppender\"\
     >\n                    <param name=\"JndiConnPropFile\" value=\"WMQJMSAPPENDERLOGGING\"\
-    \ />\n                    <param name=\"DestinationName\" value=\"{{asyncWMQAuditAppender_DestinationName}}\"\
+    \ />\n                    <param name=\"DestinationName\" value=\"queue:///CSILOGQL.M2E.DASHBOARD01.NOT.D6A\"\
     \ />\n                    <layout class=\"ch.qos.logback.classic.PatternLayout\"\
     >\n                        <Pattern>%m</Pattern>\n                    </layout>\n\
     \                </appender>\n\n                <appender name=\"asyncWMQPerfAppender\"\
     \n                    class=\"com.att.api.framework.common.logback.jmsappender.AsyncJmsAppender\"\
     >\n                    <param name=\"JndiConnPropFile\" value=\"WMQJMSAPPENDERLOGGING\"\
-    \ />\n                    <param name=\"DestinationName\" value=\"{{asyncWMQPerfAppender_DestinationName}}\"\
+    \ />\n                    <param name=\"DestinationName\" value=\"queue:///CSILOGQL.M2E.PERFORMANCE01.NOT.D6A\"\
     \ />\n                    <layout class=\"ch.qos.logback.classic.PatternLayout\"\
     >\n                        <Pattern>%m</Pattern>\n                    </layout>\n\
     \                </appender>\n\t\t\t\t\n\t\t\t\t<!-- Log Legacy audit and performance\
@@ -387,54 +324,66 @@ configFiles:
     \t</then>\n\t\t\t</if>\n\t\t\t</then>\n\t\t</if>\n\t\t\n\t\t<!-- set of legacy\
     \ debug loggers & it gets logged on root level appenders-->\n\t\t<!-- set specific\
     \ log levels for particular loggers from playbook-->\t\n\t\t<logger name=\"debug\"\
-    \ level=\"{{logging_level_legacy_debug}}\" /> <!-- INFO -->\n\t\t<logger name=\"\
-    interfaces\" level=\"{{logging_level_legacy_interfaces}}\" /> <!-- DEBUG -->\n\
-    \t\t<logger name=\"interfaces.{{ANS_app_name}}\" level=\"{{logging_level_legacy_interfaces_artifactid}}\"\
-    \ /> <!-- DEBUG -->\n\t\t<logger name=\"interfaces.PartnerProfileClient\" level=\"\
-    {{logging_level_legacy_interfaces_ppclient}}\" /> <!-- ERROR -->\n\t\t<logger\
-    \ name=\"interfaces.Utils.Voltage.common.VoltUnvolt\" level=\"{{logging_level_legacy_interfaces_voltunvolt}}\"\
-    \ /> <!-- DEBUG -->\n\t\t<logger name=\"interfaces.Utils.Voltage.encryptionproperty.EncryptionProperty\"\
-    \ level=\"{{logging_level_legacy_interfaces_encryptionproperty}}\" /> <!-- DEBUG\
-    \ -->\n\t<!-- Legacy logging appenders and loggers. This will enable the appenders\
-    \ and loggers only if it is turned ON - END-->\n\t\n\t<!-- List of F/W loggers.\
-    \ set specific log levels for particular loggers from playbook-->\n\t<logger name=\"\
-    UtilLib.VoltageAccess\" level=\"{{logging_level_utillib_voltageaccess}}\" /> <!--\
-    \ DEBUG -->\n\t<logger name=\"LoggerUtility\" level=\"{{logging_level_loggerutility}}\"\
-    \ /> <!-- DEBUG -->\n\t<logger name=\"FILE_MONITOR\" level=\"{{logging_level_filemonitor}}\"\
-    \ /> <!-- DEBUG -->\n\t<logger name=\"com.att.aft.dme2.internal.jetty\" level=\"\
-    {{logging_level_dme2_internaljetty}}\" /> <!-- ERROR -->\n\t<logger name=\"org.springframework\"\
-    \ level=\"{{logging_level_org_springframework}}\" /> <!-- ERROR -->\n\t\n\t<!--\
-    \  1T Loggers -->\n\t<if condition='property(\"USE_1T_LOGGING\").equals(\"true\"\
-    )'>\n\t\t\t<then>\n\t\t\t\t<!-- Mandatory 1T Loggers - Security, Performance,\
+    \ level=\"INFO\" /> <!-- INFO -->\n\t\t<logger name=\"interfaces\" level=\"DEBUG\"\
+    \ /> <!-- DEBUG -->\n\t\t<logger name=\"interfaces.{{ANS_app_name}}\" level=\"\
+    DEBUG\" /> <!-- DEBUG -->\n\t\t<logger name=\"interfaces.PartnerProfileClient\"\
+    \ level=\"ERROR\" /> <!-- ERROR -->\n\t\t<logger name=\"interfaces.Utils.Voltage.common.VoltUnvolt\"\
+    \ level=\"DEBUG\" /> <!-- DEBUG -->\n\t\t<logger name=\"interfaces.Utils.Voltage.encryptionproperty.EncryptionProperty\"\
+    \ level=\"DEBUG\" /> <!-- DEBUG -->\n\t<!-- Legacy logging appenders and loggers.\
+    \ This will enable the appenders and loggers only if it is turned ON - END-->\n\
+    \t\n\t<!-- List of F/W loggers. set specific log levels for particular loggers\
+    \ from playbook-->\n\t<logger name=\"UtilLib.VoltageAccess\" level=\"DEBUG\" />\
+    \ <!-- DEBUG -->\n\t<logger name=\"LoggerUtility\" level=\"DEBUG\" /> <!-- DEBUG\
+    \ -->\n\t<logger name=\"FILE_MONITOR\" level=\"DEBUG\" /> <!-- DEBUG -->\n\t<logger\
+    \ name=\"com.att.aft.dme2.internal.jetty\" level=\"ERROR\" /> <!-- ERROR -->\n\
+    \t<logger name=\"org.springframework\" level=\"ERROR\" /> <!-- ERROR -->\n\t\n\
+    \t<!--  1T Loggers -->\n\t<if condition='property(\"USE_1T_LOGGING\").equals(\"\
+    true\")'>\n\t\t\t<then>\n\t\t\t\t<!-- Mandatory 1T Loggers - Security, Performance,\
     \ Audit & Trace -->\n\t\t\t\t<logger name=\"Security\" level=\"DEBUG\" />    \
     \ \n\t\t\t    <logger name=\"Audit\" level=\"INFO\" />    \n\t\t\t    <logger\
     \ name=\"Trace\" level=\"DEBUG\" /> \n\t\t\t    <logger name=\"Performance\" level=\"\
     INFO\" /> \n\t\t\t    \n\t\t\t    <!-- Optional 1T Loggers -->  \n\t\t\t    <logger\
-    \ name=\"Exception\" level=\"{{logging_level_exception}}\" /> <!-- ERROR -->\n\
-    \t\t\t    <logger name=\"Custom\" level=\"{{logging_level_custom}}\" /> <!-- DEBUG\
-    \ -->   \n\t\t\t    <logger name=\"Request\" level=\"{{logging_level_request}}\"\
-    \ /> <!-- OFF -->\n\t\t\t    <logger name=\"Response\" level=\"{{logging_level_response}}\"\
-    \ /> <!-- OFF -->\n    \t</then>\n\t</if>\n\t\n\t<!-- Turn off 1T loggers when\
-    \ 1T logging is turned off -->\n\t<if condition='property(\"USE_1T_LOGGING\").equals(\"\
-    false\")'>\n\t\t<then>\n\t\t\t<!-- Mandatory 1T Loggers - Security, Performance,\
-    \ Audit & Trace -->\n\t\t\t<logger name=\"Security\" level=\"OFF\" />     \n\t\
-    \t    <logger name=\"Audit\" level=\"OFF\" />    \n\t\t    <logger name=\"Trace\"\
-    \ level=\"OFF\" /> \n\t\t    <logger name=\"Performance\" level=\"OFF\" /> \n\t\
-    \t    \n\t\t    <!-- Optional 1T Loggers -->  \n\t\t    <logger name=\"Exception\"\
-    \ level=\"OFF\" /> <!-- ERROR -->\n\t\t    <logger name=\"Custom\" level=\"OFF\"\
-    \ /> <!-- DEBUG -->   \n\t\t    <logger name=\"Request\" level=\"OFF\" /> <!--\
-    \ OFF -->\n\t\t    <logger name=\"Response\" level=\"OFF\" /> <!-- OFF -->\n\t\
-    \t</then>\n\t</if>\t\t\n\t\t\n    <!-- Debug logger can be enabled and disabled\
+    \ name=\"Exception\" level=\"ERROR\" /> <!-- ERROR -->\n\t\t\t    <logger name=\"\
+    Custom\" level=\"DEBUG\" /> <!-- DEBUG -->   \n\t\t\t    <logger name=\"Request\"\
+    \ level=\"OFF\" /> <!-- OFF -->\n\t\t\t    <logger name=\"Response\" level=\"\
+    OFF\" /> <!-- OFF -->\n    \t</then>\n\t</if>\n\t\n\t<!-- Turn off 1T loggers\
+    \ when 1T logging is turned off -->\n\t<if condition='property(\"USE_1T_LOGGING\"\
+    ).equals(\"false\")'>\n\t\t<then>\n\t\t\t<!-- Mandatory 1T Loggers - Security,\
+    \ Performance, Audit & Trace -->\n\t\t\t<logger name=\"Security\" level=\"OFF\"\
+    \ />     \n\t\t    <logger name=\"Audit\" level=\"OFF\" />    \n\t\t    <logger\
+    \ name=\"Trace\" level=\"OFF\" /> \n\t\t    <logger name=\"Performance\" level=\"\
+    OFF\" /> \n\t\t    \n\t\t    <!-- Optional 1T Loggers -->  \n\t\t    <logger name=\"\
+    Exception\" level=\"OFF\" /> <!-- ERROR -->\n\t\t    <logger name=\"Custom\" level=\"\
+    OFF\" /> <!-- DEBUG -->   \n\t\t    <logger name=\"Request\" level=\"OFF\" />\
+    \ <!-- OFF -->\n\t\t    <logger name=\"Response\" level=\"OFF\" /> <!-- OFF -->\n\
+    \t\t</then>\n\t</if>\t\t\n\t\t\n    <!-- Debug logger can be enabled and disabled\
     \ based on the requirement & logger can be defined on the corresponding Class\
     \ Name. -->\n   <!--  <logger name=\"Debug\" level=\"DEBUG\" /> -->\n    \n  \
     \  <!-- iLib Logger -->\n    <logger name=\"iLibLogging\" level=\"INFO\" additivity=\"\
     false\">\n\t       <appender-ref ref=\"STDOUTiLibLogging\" />\n\t</logger>\n\t\
-    \n\t<!-- and, finally, the root logger -->\n\n\t<root level=\"{{logging_level_root}}\"\
-    > <!-- DEBUG -->\n\n\t\t<if condition='property(\"USE_1T_LOGGING\").equals(\"\
-    true\")'>\n\t\t\t<then>\n\t\t\t\t<appender-ref ref=\"1T_ASYNC\" />\n\t\t\t</then>\n\
-    \t\t</if>\n\t\t<if condition='property(\"USE_1T_LOGGING\").equals(\"false\")'>\n\
-    \t\t\t<then>\n\t\t\t\t<appender-ref ref=\"ASYNC_STDOUT\" />\n\t\t\t</then>\n\t\
-    \t</if>\n\t</root>\n\n</configuration>\n"
+    \n\t<!-- and, finally, the root logger -->\n\n\t<root level=\"INFO\"> <!-- DEBUG\
+    \ -->\n\n\t\t<if condition='property(\"USE_1T_LOGGING\").equals(\"true\")'>\n\t\
+    \t\t<then>\n\t\t\t\t<appender-ref ref=\"1T_ASYNC\" />\n\t\t\t</then>\n\t\t</if>\n\
+    \t\t<if condition='property(\"USE_1T_LOGGING\").equals(\"false\")'>\n\t\t\t<then>\n\
+    \t\t\t\t<appender-ref ref=\"ASYNC_STDOUT\" />\n\t\t\t</then>\n\t\t</if>\n\t</root>\n\
+    \n</configuration>\n"
+  errorMessages.properties: "#Below is the sample format of error/exception response.\
+    \ It should always have 3 tokens. \n#httpStatusCode should be valid http response\
+    \ status code ranging from 400 - 599 \n\n#failureCode=errorCode|errorDescription|httpStatusCode\n\
+    demoFailure=SVC9999|Sample error record for testing|400\n"
+  cadi.properties: "basic_realm=csp.att.com\nbasic_warn=TRUE\n \ncadi_loglevel=WARN\n\
+    \ncadi_keyfile=/opt/att/ajsc/aaf/keyfile\n\n\n \ncadi_protocols=TLSv1.1,TLSv1.2\n\
+    \naaf_env=PROD\n\n#aaf_url=https://DME2RESOLVE/service=com.att.authz.AuthorizationService/version=2.0/envContext=TEST/routeOffer=BAU_SE\n\
+    #AFT_LATITUDE=35.4\n#AFT_LONGITUDE=-81.5\n#AFT_ENVIRONMENT=AFTUAT\n\naaf_url=https://aaf-azure.it.att.com\n\
+    aaf_locate_url=https://aaf-azure.it.att.com/locate\naaf_lur=com.att.cadi.aaf.v2_0.AAFLurPerm\n\
+    \ \n#Commenting these 2 lines until CADI fixes Authorization issue in 1.4.2 cadi\
+    \ jars - CPFSDKJAVA-1830\n#aaf_oauth2_token_url=https://aaf-azure.it.att.com/locate/com.att.aaf.token:2.0/token\n\
+    #aaf_oauth2_introspect_url=https://aaf-azure.it.att.com/locate/com.att.aaf.introspect:2.0/introspect\n\
+    \naaf_id=${AAF_ID}\naaf_password=${AAF_PASSWORD}\n\naaf_timeout=5000\n\ncadi_latitude=35.4\n\
+    cadi_longitude=-81.5"
+  spm2.properties: '#This one for testing purpose
+
+    csi.service.version=100.0.0'
   MasterEndPointOverrideMap.xml: "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<MasterEndPointOverrideMap\
     \ xsi:schemaLocation=\"http://csi.cingular.com/CSI/Namespaces/Types/Private/Implementation/MasterEndPointOverrideMap.xsd\
     \ MasterEndPointOverrideMap.xsd\" xmlns=\"http://csi.cingular.com/CSI/Namespaces/Types/Private/Implementation/MasterEndPointOverrideMap.xsd\"\
@@ -443,26 +392,72 @@ configFiles:
     \t\t<componentName>com.att.csid.PartnerProfileService</componentName>\n\t\t<version>2</version>\n\
     \t\t<envContext>TEST</envContext>\n\t\t<routeOffer>Q25A</routeOffer>\n\t</MasterEndpoint>\n\
     </MasterEndPointOverrideMap>\n"
-  spm2.properties: '#This one for testing purpose
+  aft.properties: 'com.att.aft.discovery.client.environment=AFTUAT
 
-    csi.service.version=100.0.0'
-  wmqLog.properties: 'java.naming.factory.initial={{ java_naming_factory_initial }}
+    com.att.aft.discovery.client.latitude=35.4
 
-    java.naming.provider.url={{ java_naming_provider_url }}
+    com.att.aft.discovery.client.longitude=-81.5
 
-    jms.queue.connection.factory={{ jms_queue_connection_factory }}
+    com.att.aft.keyStore=/opt/att/ajsc/secret/aft.jks
 
-    jms.session.max={{ jms_session_max }}
+    com.att.aft.keyStorePassword=its4test
 
-    jms.delivery.mode={{ jms_delivery_mode }}
+    com.att.aft.trustStore=/opt/att/ajsc/secret/aft.jks
 
-    jms.timeout={{ jms_timeout }}
+    com.att.aft.trustStorePassword=its4test
 
-    jms.priority={{ jms_priority }}
+    com.att.aft.alias=fusionbus'
+  wmqLog.properties: 'java.naming.factory.initial=com.att.aft.jms.FusionCtxFactory
+
+    java.naming.provider.url=aftdsc://AFTUAT/35.4/-81.5
+
+    jms.queue.connection.factory=aftdsc://AFTUAT/?service=CSILOG,version=4.0,bindingType=fusionBus,envContext=Q,D6A=YES
+
+    jms.session.max=10
+
+    jms.delivery.mode=2
+
+    jms.timeout=900000
+
+    jms.priority=2
 
     JMS.user=
 
     JMS.password='
+  application.properties: "info.build.artifact=@project.artifactId@\ninfo.build.name=@project.name@\n\
+    info.build.description=@project.description@\ninfo.build.version=@project.version@\n\
+    info.build.groupId=@project.groupId@\nlogging.level.root=INFO\n\neco.seed.name=ajsc7_jersey\n\
+    eco.seed.version=7.14.0-RELEASE\neco.seed.created.datetime=Wed May  5 22:15:24\
+    \ UTC 2021\n\nserver.servlet.contextPath=/\nserver.servlet-path=/\nspring.jersey.application-path=/administration/v1\n\
+    server.routingPath=/\nmots.application.acronym=change_me\nplatform.identifier=AJSC7_JERSEY\n\
+    spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration\n\
+    \nlogging.pattern.console=%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(%5p) %clr($\
+    \ threadId: {PID:- }){magenta} %clr(---){faint} %clr([ hostname: %X{hostname}\
+    \ serviceName: %X{serviceName} version: %X{version} transactionId: %X{transactionId}\
+    \ requestTimeStamp: %X{requestTimestamp}  responseTimeStamp: %X{responseTimestamp}\
+    \ duration: %X{duration}]){yellow} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan}\
+    \ %clr(:){faint} %m%n%wex\n\n#The max number of active threads in this pool\n\
+    server.tomcat.max-threads=200\n#The minimum number of threads always kept alive\n\
+    server.tomcat.min-Spare-Threads=25\n#The number of milliseconds before an idle\
+    \ thread shutsdown, unless the number of active threads are less or equal to minSpareThreads\n\
+    server.tomcat.max-idle-time=60000\n\n#for changing the tomcat port...\n#server.port=8081\n\
+    \n#Management server port for accessing actuator endpoints...\nmanagement.server.port=8080\n\
+    \n# Expose endpoints to web...\nmanagement.endpoints.web.exposure.include=info,health,prometheus\n\
+    \n# Turn off all endpoints by default and enable only info, health and Prometheus\
+    \ only...\nmanagement.endpoints.enabled-by-default=false\nmanagement.endpoint.info.enabled=true\n\
+    management.endpoint.health.enabled=true\nmanagement.endpoint.prometheus.enabled=true\n\
+    \n#Servlet context parameters\nserver.context_parameters.p-name=value #context\
+    \ parameter with p-name as key and value as value.\n\n#Service System Properties.\
+    \ Please, place any Service related System Properties below.\n#masterEndPointOverrideMap.location=etc/MasterEndPointOverrideMap.xml\n\
+    #adapterDME2UrlMap.location=etc/AdapterDME2UrlMap.xml\n#AdapterMap.location=etc/Adapter.map\n\
+    #defaultDME2EnvContext=TEST\n#com.att.aft.dme2.jms.stickySelectorKey=\n\n#path\
+    \ for application environment file \n#env.path=etc/env-application.properties\n\
+    #aaf.roles.properties=etc-local/AAFUserRoles.properties \n#cadi.properties.location=etc-local/cadi.properties\n\
+    \n# make this true for AAF authentication and place cadi.properties into etc folder\n\
+    #aaf.enabled=false\n\n# set to true to enable version proxy\n#ivp.enabled=false\n\
+    \n"
+deployments: []
+services: []
 networkPolicy:
   enabled: false
   ingress:
