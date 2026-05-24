@@ -1,0 +1,244 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  replicas: {{att_ms_replicas}}
+  strategy:
+    type: {{k8s_deployment_strategy}}
+    rollingUpdate:
+      maxUnavailable: {{pod_maxUnavailable}}
+      maxSurge: {{pod_maxSurge}}
+  minReadySeconds: {{pod_minReadySeconds}}
+  revisionHistoryLimit: {{pod_revisionHistoryLimit}}
+  selector:
+    matchLabels:
+      app: {{ANS_app_name}}
+      routeoffer: {{ROUTEOFFER}}
+  template:
+    metadata:
+      labels:
+        app: {{ANS_app_name}}
+        version: "{{ANS_VERSION}}"
+        routeoffer: {{ROUTEOFFER}}
+      annotations:
+        GRM_NS: {{ANS_grm_ns}}
+        seedname: ajsc7_jersey
+        seedversion: 7.14.0-RELEASE
+    spec:
+      serviceAccount: default
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: {{nodeAffinitykey}}
+                    operator: In
+                    values:
+                      - {{nodeAffinityvalue}}
+      volumes:
+        - name: {{ANS_msname}}-volume
+          configMap:
+            name: {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-configs
+        - name: {{ANS_msname}}-secretvolume
+          secret:
+            secretName: {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-secrets
+        - name: {{ANS_msname}}-aafvolume
+          secret:
+            secretName: aaf-cred
+            optional: true
+            items:
+            - key: keyfile
+              path: keyfile
+      containers:
+      - name: {{ANS_msname}}
+        image: {{ANS_imagename}}
+        imagePullPolicy: {{k8s_imagepullpolicy}}
+        resources:
+          requests:
+            memory: {{att_ms_reources_requests_memory}}
+            cpu: {{att_ms_reources_requests_cpu}}
+          limits:
+            memory: {{att_ms_reources_limits_memory}}
+            cpu: {{att_ms_reources_limits_cpu}}
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: AJSCARGS
+          value: "{{AJSCARGS}}"
+        - name: AJSC_CONFIGMAP_MOUNT_PATH
+          value: "/opt/att/ajsc/etc"
+        - name: ROUTEOFFER
+          value: "{{ROUTEOFFER}}"
+        - name: ENVCONTEXT
+          value: "{{ENVCONTEXT}}"
+        - name: BUNDLEVERSION
+          value: "{{ANS_VERSION}}"
+        - name: AFTENVIRONMENT
+          value: "{{AFTENVIRONMENT}}"
+        - name: AFTLONGITUDE
+          value: "{{AFTLONGITUDE}}"
+        - name: AFTLATITUDE
+          value: "{{AFTLATITUDE}}"
+        - name: STICKYSELECTORKEY
+          value: "{{STICKYSELECTORKEY}}"
+        - name: DiscoveryURL
+          value: "{{DiscoveryURL}}"
+        - name: VoltageFlag
+          value: "{{VoltageFlag}}"
+        - name: usePPService
+          value: "{{usePPService}}"
+        - name: DEBUG_LEVEL
+          value: "{{DEBUG_LEVEL}}"
+        - name: FrameworkTimingLevel
+          value: "{{FrameworkTimingLevel}}"
+        - name: NAMESPACE
+          value: "{{ANS_NAMESPACE}}"
+        - name: APP_NAME
+          value: "{{ANS_msname}}"
+        - name: AAF_PERM_TYPE
+          value: "{{AAF_PERM_TYPE}}"
+        - name: AAF_ID
+          valueFrom:
+            secretKeyRef:
+              name: aaf-cred
+              key: aaf_id
+              optional: true
+        - name: AAF_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: aaf-cred
+              key: aaf_password
+              optional: true
+        - name: APP_VERSION
+          value: "{{ANS_VERSION}}"
+        - name: APP_ENV
+          value: "{{ENVCONTEXT}}" 
+        - name: TAPM_ENV
+          value: "{{TAPM_ENV}}"
+        - name: TAPM_ROLLUP_ID
+          value: "{{TAPM_APPNAME}}-{{ANS_app_name}}-{{ANS_VERSION}}-{{ENVCONTEXT}}"
+        - name: GLOWROOT_FLAG
+          value: "{{GLOWROOT_FLAG}}"
+        - name: MS_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: MS_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: MS_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: MS_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: MS_POD_SERVICE_ACCOUNT
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: MS_IMAGE_NAME
+          value: "{{ANS_imagename}}"
+        - name: K8S_SERVER
+          value: "{{k8_server}}"  
+        - name: attcc_db_url
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: attcc_db_url
+        - name: attcc_db_username
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: attcc_db_username
+        - name: attcc_db_password
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: attcc_db_password
+        - name: attcc_reporting_url
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: attcc_reporting_url
+        - name: attcc_rpt_db_url
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: attcc_rpt_db_url
+        - name: attcc_rpt_db_username
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: attcc_rpt_db_username
+        - name: attcc_rpt_db_password
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: attcc_rpt_db_password
+        - name: CORS_LIST
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: CORS_LIST
+        - name: ATTCC_KEY 
+          valueFrom: 
+            secretKeyRef: 
+              name: connectionmanagement 
+              key: ATTCC_KEY    
+        - name: jwt_secret_key
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: jwt_secret_key
+        - name: jwt_token_validity
+          valueFrom:
+            secretKeyRef:
+              name: connectionmanagement
+              key: jwt_token_validity
+        - name: GL_ENV
+          value: "{{GL_ENV}}"
+        - name: MOTSAppAcronym
+          value: "{{mots_application_acronym}}"
+        volumeMounts:
+        - name: {{ANS_msname}}-volume
+          mountPath: /opt/att/ajsc/etc
+        - name: {{ANS_msname}}-secretvolume
+          mountPath: /opt/att/ajsc/secret
+        - name: {{ANS_msname}}-aafvolume
+          mountPath: /opt/att/ajsc/aaf
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+            scheme: HTTP
+            httpHeaders:
+              - name: X-Custom-Header
+                value: Alive
+          initialDelaySeconds: {{k8s_liveness_initialDelaySeconds}}
+          timeoutSeconds: {{k8s_liveness_timeoutSeconds}}
+          periodSeconds: {{k8s_liveness_periodSeconds}}
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+            scheme: HTTP
+            httpHeaders:
+              - name: X-Custom-Header
+                value: Ready
+          initialDelaySeconds: {{k8s_readiness_initialDelaySeconds}}
+          timeoutSeconds: {{k8s_readiness_timeoutSeconds}}
+          periodSeconds: {{k8s_readiness_periodSeconds}}      
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: regcred

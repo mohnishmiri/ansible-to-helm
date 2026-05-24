@@ -1,0 +1,17 @@
+./defaults/main.yml
+./filelist.txt
+./meta/main.yml
+./tasks/main.yaml
+./templates/configs/MasterEndPointOverrideMap.xml
+./templates/configs/aft.properties
+./templates/configs/application.properties
+./templates/configs/cadi.properties
+./templates/configs/errorMessages.properties
+./templates/configs/logback.xml
+./templates/configs/spm2.properties
+./templates/configs/wmqLog.properties
+./templates/k8s/deployment-oidc.yaml
+./templates/k8s/deployment.yaml
+./templates/k8s/oidcclient-secret.yaml
+./templates/k8s/service.yaml
+./time.txt

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}

@@ -1,0 +1,15 @@
+./deploy.yml
+./filelist.txt
+./inventory/dev/group_vars/all
+./inventory/dev/host_vars/dev_hosts
+./inventory/dev/host_vars/zlp22256.vci.att.com
+./inventory/dev/hosts
+./inventory/prod/group_vars/all
+./inventory/prod/host_vars/servers
+./inventory/prod/hosts
+./inventory/test/group_vars/all
+./inventory/test/host_vars/test_hosts
+./inventory/test/hosts
+./requirements.yml
+./secrets/README.txt
+./time.txt

@@ -1,0 +1,129 @@
+---
+logLevel: ALL
+config_env: test
+
+#AFT_ENVIRONMENT: AFTUAT
+platform: NON-PROD
+
+systempropertiespath: "/etc/config/"
+
+AFTLATITUDE: "35.4"
+AFTLONGITUDE: "-81.5"
+ROUTEOFFER: "D2A"
+ENVCONTEXT: "TEST"
+AFTENVIRONMENT: "AFTUAT"
+STICKYSELECTORKEY: 
+DiscoveryURL: "aftdsc://{{AFTLATITUDE}}/{{AFTLONGITUDE}}/{{AFTENVIRONMENT}}?service=dmeQCF,version=1.0,bindingType=jms,envContext=U"
+VoltageFlag: "off"
+usePPService: "true"
+DEBUG_LEVEL: "INFO"
+FrameworkTimingLevel: "DEBUG"
+
+#deployment.yml
+pod_minReadySeconds: "120"
+
+nodeselector: "ruleengine"
+
+# Updating for Adding NodeAffinity to all mS (Reference would be deployment.yaml)
+nodeAffinitykey: "nodepool"
+nodeAffinityvalue: "ruleengine"
+
+CSI_CLUSTER: "D6A"
+# glowroot server environment
+glowroot_flag: "on"
+# glowroot flag to turn on/off
+tapm_env: "UAT"
+
+#run.source
+WMQ_ENVCONTEXT: "D"
+
+#k8
+k8_server: https://{{inventory_hostname}}
+k8_addargs: "--insecure-skip-tls-verify=true"
+
+#aft.properties
+com_att_aft_discovery_client_environment: "{{AFTENVIRONMENT}}"
+com_att_aft_discovery_client_latitude: "{{AFTLATITUDE}}"
+com_att_aft_discovery_client_longitude: "{{AFTLONGITUDE}}"
+com_att_aft_keyStore: "/opt/att/ajsc/secret/aft.jks"
+com_att_aft_keyStorePassword: "its4test"
+com_att_aft_trustStore: "/opt/att/ajsc/secret/aft.jks"
+com_att_aft_trustStorePassword: "its4test"
+com_att_aft_alias: "fusionbus"
+
+#cadi.properties
+aaf_id: "${AAF_ID}"
+aaf_password: "${AAF_PASSWORD}"
+
+#logback.xml
+asyncWMQAuditAppender_DestinationName: "queue:///CSILOGQL.M2E.DASHBOARD01.NOT.{{CSI_CLUSTER}}"
+asyncWMQPerfAppender_DestinationName: "queue:///CSILOGQL.M2E.PERFORMANCE01.NOT.{{CSI_CLUSTER}}"
+asyncWmQappender_DestinationName: "queue:///CSILOGQL.M2E.DASHBOARD01.NOT.{{CSI_CLUSTER}}"
+# Mark this as true for enabling 1T Logging
+logging_enable_1T: "true"
+# Mark this as true for enabling 1T Pretty Formatting
+logging_enable_1T_prettyprint: "false"
+# Mark this as true for enabling Legacy Logging
+logging_enable_legacy: "false"
+# Mark this as true for enabling CSI Dashboard Logging
+logging_enable_csidashboard: "false"
+# Mark this as "INFO" for enabling 1T Performance Logging
+#logging_level_performance: "INFO"
+# Mark this as "DEBUG" for enabling 1T Request Logging
+logging_level_request: "OFF"
+# Mark this as "DEBUG" for enabling 1T Response Logging
+logging_level_response: "OFF"
+# Mark this as "ERROR" for enabling 1T Exception Logging
+logging_level_exception: "ERROR"
+# Mark this as "DEBUG" for enabling 1T Custom Logging
+logging_level_custom: "DEBUG"
+# Change this for defining root level Logging
+logging_level_root: "INFO"
+# Below are the log level properties for enabling different legacy loggers
+logging_level_legacy_debug: "INFO"
+logging_level_legacy_interfaces: "DEBUG"
+logging_level_legacy_interfaces_artifactid: "DEBUG"
+logging_level_legacy_interfaces_ppclient: "ERROR"
+logging_level_legacy_interfaces_voltunvolt: "DEBUG"
+logging_level_legacy_interfaces_encryptionproperty: "DEBUG"
+# Below are the log level properties for enabling different framework level loggers
+logging_level_utillib_voltageaccess: "DEBUG"
+logging_level_loggerutility: "DEBUG"
+logging_level_filemonitor: "DEBUG"
+logging_level_dme2_internaljetty: "ERROR"
+logging_level_org_springframework: "ERROR"
+logging_level_com_azure: "WARN"
+#Use this for enabling security filter in WMQ logging 
+logging_enable_securityfilter: "true"
+
+#wmqLog.properties
+jms_queue_connection_factory: "aftdsc://{{com_att_aft_discovery_client_environment}}/?service=CSILOG,version=4.0,bindingType=fusionBus,envContext=Q,{{CSI_CLUSTER}}=YES"
+java_naming_provider_url: "aftdsc://{{com_att_aft_discovery_client_environment}}/{{com_att_aft_discovery_client_latitude}}/{{com_att_aft_discovery_client_longitude}}"
+java_naming_factory_initial: "com.att.aft.jms.FusionCtxFactory"
+jms_session_max: "10"
+jms_delivery_mode: "2"
+jms_timeout: "900000"
+jms_priority: "2"
+
+# timing for readiness
+k8s_readiness_initialDelaySeconds: "110"
+k8s_readiness_periodSeconds: "30"
+k8s_readiness_timeoutSeconds: "30"
+
+# timing for liveness
+k8s_liveness_initialDelaySeconds: "120"
+k8s_liveness_periodSeconds: "30"
+k8s_liveness_timeoutSeconds: "30"
+
+#application.properties
+#logging_level_root: "info"
+mots_application_acronym: "change_me"
+
+server_tomcat_max_threads: "200"
+server_tomcat_min_Spare_Threads: "25"
+server_tomcat_max_idle_time: "60000"
+server_context_parameters_p_name: "value"
+
+
+AAF_PERM_TYPE: "{{ANS_AAF_NAMESPACE}}.dev.access"
+GL_ENV: "DEVL,V_DEVL"

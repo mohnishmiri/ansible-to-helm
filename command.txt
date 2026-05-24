@@ -1,0 +1,12 @@
+python ./ansible-to-helm/convert.py \
+  --playbook-location ./attcc/administration/playbook \
+  --config-role-location ./attcc/calcaggregationprocessor/configrole \
+  --output-location ./ansible-to-helm/helm-output \
+  --service-name calcaggregationprocessor \
+  --service-type java-ajsc \
+  --namespace com-att-attcc-dev-merge
+
+helm template calcaggregationprocessor ./ansible-to-helm/helm-output/calcaggregationprocessor \
+-f ./ansible-to-helm/helm-output/calcaggregationprocessor/values.yaml \
+-f ./ansible-to-helm/helm-output/calcaggregationprocessor/values-perf.yaml
+

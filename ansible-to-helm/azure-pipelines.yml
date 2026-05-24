@@ -1,0 +1,51 @@
+trigger:
+  branches:
+    include:
+      - main
+      - develop
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  pythonVersion: "3.12"
+
+stages:
+  - stage: Test
+    jobs:
+      - job: UnitTests
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+          - script: |
+              cd ansible-to-helm
+              pip install -r requirements.txt
+              pip install pytest pytest-cov
+              python -m pytest tests/ -v --cov=src/converter --junitxml=test-results.xml
+            displayName: Run tests
+          - task: PublishTestResults@2
+            inputs:
+              testResultsFiles: ansible-to-helm/test-results.xml
+
+      - job: GenerateAndLint
+        dependsOn: UnitTests
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+          - task: HelmInstaller@0
+            inputs:
+              helmVersion: "3.14.0"
+          - script: |
+              cd ansible-to-helm
+              pip install -r requirements.txt
+              python convert.py \
+                --playbook-location ../playbook \
+                --config-role-location ../configrole \
+                --output-location ./helm-output \
+                --service-name customer-ms \
+                --service-type java-ajsc \
+                --namespace customer
+              helm lint ./helm-output/customer-ms/
+            displayName: Generate and lint Helm chart

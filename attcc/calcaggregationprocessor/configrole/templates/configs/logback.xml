@@ -1,0 +1,266 @@
+<configuration scan="true" scanPeriod="3 seconds">
+	
+	<!-- this will disable printing the logback startup messages -->
+	<!-- you may need to comment it out to troubleshoot logging issues -->
+	<statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+
+	<!-- this listener enables overriding of log levels in the logging-override.properties file -->
+	<contextListener class="com.att.api.framework.common.logging.override.ContextListener" />
+
+	<!-- set this to true to send json-formatted log entries to the console-->
+	<property name="USE_1T_LOGGING" value="{{logging_enable_1T}}" />  <!-- true -->
+
+	<!-- setting this to true will format the log entries easier to read, but make sure it is false when deployed -->
+	<property name="USE_1T_PRETTY_PRINT" value="{{logging_enable_1T_prettyprint}}" />  <!-- false -->
+
+	<!-- set this to true to send audit and performance tracking log entries in legacy format to console when USE_DASHBOARD_LOGGING is set to false -->
+	<property name="USE_LEGACY_LOGGING" value="{{logging_enable_legacy}}" />  <!-- false -->
+
+	<!-- set this to true to send audit and performance tracking log entries in legacy format to the csi dashboard -->
+	<property name="USE_DASHBOARD_LOGGING" value="{{logging_enable_csidashboard}}" />  <!-- false -->
+	 
+	<!-- setting this to true will hide the SPI data from logs, but make sure it is true when deployed -->
+    <property name="USE_SECURITY_FILTER" value="{{logging_enable_securityfilter}}" /> <!-- true -->
+
+	
+	<!-- iLib related configs -->
+	<property name="defaultPatterniLibLogging" value="%m%n" />
+
+	<appender name="STDOUTiLibLogging" class="ch.qos.logback.core.ConsoleAppender">
+	       <encoder>
+	              <pattern>${defaultPatterniLibLogging}</pattern>
+	       </encoder>
+	</appender>
+
+	<!-- this is the new 1T appender that writes json-formatted log entries -->
+	<appender name="1T" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="com.att.api.framework.common.logging.encoder.LoggingRecordEncoder">
+			<prettyPrint>${USE_1T_PRETTY_PRINT}</prettyPrint>
+			<useSecurityFilter>${USE_SECURITY_FILTER}</useSecurityFilter>
+		</encoder>
+	</appender>
+	<appender name="1T_ASYNC" class="com.att.api.framework.common.logging.appender.AsyncLoggingAppender">
+		<appender-ref ref="1T" />
+	</appender>
+	
+	<!-- appender that writes using the legacy format -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+	   <layout class="com.att.api.framework.common.logback.layout.SecurityPatternLayout">      
+         <Pattern>%d{yyyy-MM-dd HH:mm:ss} - %-5level %logger{36} [%thread] %n%msg%n</Pattern>
+       </layout>
+		<!-- <encoder>
+			<pattern>%d{yyyy-MM-dd HH:mm:ss} - %-5level %logger{36} [%thread] %n%msg%n</pattern>
+		</encoder> -->
+	</appender>
+
+	<appender name="ASYNC_STDOUT" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="STDOUT" />
+	</appender>
+
+    <!-- Legacy logging appenders and loggers. This will enable the appenders and loggers only if it is turned ON - START-->      
+        <!-- configure special appenders and loggers to log to the dashboard via wmq (but only if dashboard logging enabled) -->  
+		<if condition='property("USE_DASHBOARD_LOGGING").equals("true")'>
+            <then>
+                <appender name="asyncWMQAuditAppender"
+                    class="com.att.api.framework.common.logback.jmsappender.AsyncJmsAppender">
+                    <param name="JndiConnPropFile" value="WMQJMSAPPENDERLOGGING" />
+                    <param name="DestinationName" value="{{asyncWMQAuditAppender_DestinationName}}" />
+                    <layout class="ch.qos.logback.classic.PatternLayout">
+                        <Pattern>%m</Pattern>
+                    </layout>
+                </appender>
+
+                <appender name="asyncWMQPerfAppender"
+                    class="com.att.api.framework.common.logback.jmsappender.AsyncJmsAppender">
+                    <param name="JndiConnPropFile" value="WMQJMSAPPENDERLOGGING" />
+                    <param name="DestinationName" value="{{asyncWMQPerfAppender_DestinationName}}" />
+                    <layout class="ch.qos.logback.classic.PatternLayout">
+                        <Pattern>%m</Pattern>
+                    </layout>
+                </appender>
+				
+				<!-- Log Legacy audit and performance logs to Console & wmq when both Legacy logging & dashboard logging is turned on -->      
+				<if condition='property("USE_LEGACY_LOGGING").equals("true")'>
+					<then>
+						<appender name="async_audit_log" class="ch.qos.logback.classic.AsyncAppender">
+							<appender-ref ref="asyncWMQAuditAppender" />					
+						</appender>							 
+
+						<!-- audit logger must be set to INFO to actually write audit record -->
+						<logger name="audit" level="INFO" additivity="false">
+							<appender-ref ref="async_audit_log" />							
+							<appender-ref ref="ASYNC_STDOUT" />
+						</logger>
+			 
+						<logger name="audit.{{ANS_app_name}}" level="INFO" additivity="false">
+							<appender-ref ref="async_audit_log" />							
+							<appender-ref ref="ASYNC_STDOUT" />
+						</logger>
+
+						<logger name="audit_BPM_Timing" level="INFO" additivity="false">
+							<appender-ref ref="async_audit_log" />							
+							<appender-ref ref="ASYNC_STDOUT" />
+						</logger>
+
+						<appender name="async_perf_log" class="ch.qos.logback.classic.AsyncAppender">
+							<appender-ref ref="asyncWMQPerfAppender" />							
+						</appender>
+
+						<logger name="performance.tracking" level="DEBUG" additivity="false">
+							<appender-ref ref="async_perf_log" />							
+							<appender-ref ref="ASYNC_STDOUT" />
+						</logger>						
+					</then>					
+				</if>
+				
+				<!-- Log Legacy audit and performance logs to wmq when Legacy logging is turned off & dashboard logging is turned on -->      
+				<if condition='property("USE_LEGACY_LOGGING").equals("false")'>
+					<then>
+						<appender name="async_audit_log" class="ch.qos.logback.classic.AsyncAppender">
+							<appender-ref ref="asyncWMQAuditAppender" />
+						</appender>
+
+						<!-- audit logger must be set to INFO to actually write audit record -->
+						<logger name="audit" level="INFO" additivity="false">
+							<appender-ref ref="async_audit_log" />
+						</logger>
+
+						<logger name="audit.{{ANS_app_name}}" level="INFO" additivity="false">
+							<appender-ref ref="async_audit_log" />
+						</logger>
+
+						<logger name="audit_BPM_Timing" level="INFO" additivity="false">
+							<appender-ref ref="async_audit_log" />
+						</logger>
+
+						<appender name="async_perf_log" class="ch.qos.logback.classic.AsyncAppender">
+							<appender-ref ref="asyncWMQPerfAppender" />
+						</appender>
+
+						<logger name="performance.tracking" level="DEBUG" additivity="false">
+							<appender-ref ref="async_perf_log" />
+						</logger>						
+					</then>					
+				</if>
+								
+            </then>
+        </if>
+
+		
+		<!-- When dashboard logging is Off and logging will be based on Legacy Logging status -->
+		<if condition='property("USE_DASHBOARD_LOGGING").equals("false")'>
+			<then>		
+			<!-- Log Legacy audit and performance logs to Console when Legacy logging is turned on & dashboard logging is turned off -->		
+			<if condition='property("USE_LEGACY_LOGGING").equals("true")'>
+			<then>
+												
+				<!-- audit logger must be set to INFO to actually write audit record -->
+				<logger name="audit" level="INFO" additivity="false">
+					<appender-ref ref="ASYNC_STDOUT" />
+				</logger>
+	
+				<logger name="audit.{{ANS_app_name}}" level="INFO" additivity="false">
+					<appender-ref ref="ASYNC_STDOUT" />
+				</logger>
+		
+				<logger name="audit_BPM_Timing" level="INFO" additivity="false">
+					<appender-ref ref="ASYNC_STDOUT" />
+				</logger>
+		
+				<logger name="performance.tracking" level="DEBUG" additivity="false">
+					<appender-ref ref="ASYNC_STDOUT" />
+				</logger>
+			</then>
+			</if>
+		 
+			<!-- Turn off Legacy audit and performance loggers when Legacy logging is turned off & dashboard logging is turned off -->
+			<if condition='property("USE_LEGACY_LOGGING").equals("false")'>
+				<then>
+					<!-- audit logger must be set to INFO to actually write audit record -->
+					<logger name="audit" level="OFF" />
+					<logger name="audit.{{ANS_app_name}}" level="OFF" />
+					<logger name="audit_DirectCall" level="OFF" />
+					<logger name="audit_BPM_Timing" level="OFF" />
+					<logger name="performance.tracking" level="OFF" />
+				</then>
+			</if>
+			</then>
+		</if>
+		
+		<!-- set of legacy debug loggers & it gets logged on root level appenders-->
+		<!-- set specific log levels for particular loggers from playbook-->	
+		<logger name="debug" level="{{logging_level_legacy_debug}}" /> <!-- INFO -->
+		<logger name="interfaces" level="{{logging_level_legacy_interfaces}}" /> <!-- DEBUG -->
+		<logger name="interfaces.{{ANS_app_name}}" level="{{logging_level_legacy_interfaces_artifactid}}" /> <!-- DEBUG -->
+		<logger name="interfaces.PartnerProfileClient" level="{{logging_level_legacy_interfaces_ppclient}}" /> <!-- ERROR -->
+		<logger name="interfaces.Utils.Voltage.common.VoltUnvolt" level="{{logging_level_legacy_interfaces_voltunvolt}}" /> <!-- DEBUG -->
+		<logger name="interfaces.Utils.Voltage.encryptionproperty.EncryptionProperty" level="{{logging_level_legacy_interfaces_encryptionproperty}}" /> <!-- DEBUG -->
+	<!-- Legacy logging appenders and loggers. This will enable the appenders and loggers only if it is turned ON - END-->
+	
+	<!-- List of F/W loggers. set specific log levels for particular loggers from playbook-->
+	<logger name="UtilLib.VoltageAccess" level="{{logging_level_utillib_voltageaccess}}" /> <!-- DEBUG -->
+	<logger name="LoggerUtility" level="{{logging_level_loggerutility}}" /> <!-- DEBUG -->
+	<logger name="FILE_MONITOR" level="{{logging_level_filemonitor}}" /> <!-- DEBUG -->
+	<logger name="com.att.aft.dme2.internal.jetty" level="{{logging_level_dme2_internaljetty}}" /> <!-- ERROR -->
+	<logger name="org.springframework" level="{{logging_level_org_springframework}}" /> <!-- ERROR -->  
+	<logger name="com.azure" level="{{logging_level_com_azure}}" /> <!-- WARN -->
+
+	<!--  1T Loggers -->
+	<if condition='property("USE_1T_LOGGING").equals("true")'>
+			<then>
+				<!-- Mandatory 1T Loggers - Security, Performance, Audit & Trace -->
+				<logger name="Security" level="DEBUG" />     
+			    <logger name="Audit" level="INFO" />    
+			    <logger name="Trace" level="DEBUG" /> 
+			    <logger name="Performance" level="INFO" /> 
+			    
+			    <!-- Optional 1T Loggers -->  
+			    <logger name="Exception" level="{{logging_level_exception}}" /> <!-- ERROR -->
+			    <logger name="Custom" level="{{logging_level_custom}}" /> <!-- DEBUG -->   
+			    <logger name="Request" level="{{logging_level_request}}" /> <!-- OFF -->
+			    <logger name="Response" level="{{logging_level_response}}" /> <!-- OFF -->
+    	</then>
+	</if>
+	
+	<!-- Turn off 1T loggers when 1T logging is turned off -->
+	<if condition='property("USE_1T_LOGGING").equals("false")'>
+		<then>
+			<!-- Mandatory 1T Loggers - Security, Performance, Audit & Trace -->
+			<logger name="Security" level="OFF" />     
+		    <logger name="Audit" level="OFF" />    
+		    <logger name="Trace" level="OFF" /> 
+		    <logger name="Performance" level="OFF" /> 
+		    
+		    <!-- Optional 1T Loggers -->  
+		    <logger name="Exception" level="OFF" /> <!-- ERROR -->
+		    <logger name="Custom" level="OFF" /> <!-- DEBUG -->   
+		    <logger name="Request" level="OFF" /> <!-- OFF -->
+		    <logger name="Response" level="OFF" /> <!-- OFF -->
+		</then>
+	</if>		
+		
+    <!-- Debug logger can be enabled and disabled based on the requirement & logger can be defined on the corresponding Class Name. -->
+   <!--  <logger name="Debug" level="DEBUG" /> -->
+    
+    <!-- iLib Logger -->
+    <logger name="iLibLogging" level="INFO" additivity="false">
+	       <appender-ref ref="STDOUTiLibLogging" />
+	</logger>
+	
+	<!-- and, finally, the root logger -->
+
+	<root level="{{logging_level_root}}"> <!-- DEBUG -->
+
+		<if condition='property("USE_1T_LOGGING").equals("true")'>
+			<then>
+				<appender-ref ref="1T_ASYNC" />
+			</then>
+		</if>
+		<if condition='property("USE_1T_LOGGING").equals("false")'>
+			<then>
+				<appender-ref ref="ASYNC_STDOUT" />
+			</then>
+		</if>
+	</root>
+
+</configuration>

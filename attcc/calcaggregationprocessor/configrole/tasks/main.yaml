@@ -1,0 +1,246 @@
+---
+- name: copy dir
+  copy:
+    src: templates
+    dest: "{{msname_tmpdir}}"
+
+- name: create temp config directories
+  tags: configure
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{msname_tmpdir}}/templates/config"
+    - "{{msname_tmpdir}}/templates/secrets"
+    
+- name: create effective configuration files
+  tags: configure
+  template:
+    src: '{{ item.src }}'
+    dest: '{{msname_tmpdir}}/templates/{{ item.path }}'
+    force: yes
+  with_filetree: ../templates/
+  when: item.state == 'file'
+
+## when OIDC is enabled
+- name: Update cadi configuration for oidc
+  tags: configure
+  shell: |
+      set -e
+      echo "{{msname_tmpdir}}/templates/"
+      if [ {{ ANS_is_oidc_enabled }}  = "true" ]
+      then
+        sed -i "s!#csp_domain=PROD!csp_domain=PROD!g" {{msname_tmpdir}}/templates/configs/cadi.properties
+        sed -i "s!#oidc.client_id={{ cadi_oidc_client_id }}!oidc.client_id={{ cadi_oidc_client_id }}!g" {{msname_tmpdir}}/templates/configs/cadi.properties
+        sed -i "s!#oidc.client_secret={{ cadi_oidc_client_secret }}!oidc.client_secret={{ cadi_oidc_client_secret }}!g" {{msname_tmpdir}}/templates/configs/cadi.properties
+        sed -i "s!#oidc.redirect_url={{ cadi_redirect_url }}!oidc.redirect_url={{ cadi_redirect_url }}!g" {{msname_tmpdir}}/templates/configs/cadi.properties
+      else
+        echo "OIDC is not turned on, so not updating oidc values"
+      fi   
+  register: tasksupdatecadi
+
+- debug: var=tasksupdatecadi.stdout_lines
+- debug: var=tasksupdatecadi.stderr_lines
+
+
+- name: create secrets files
+  tags: configure 
+  copy: 
+    src: '{{ item.src }}' 
+    dest: '{{msname_tmpdir}}/templates/secrets/{{ item.path }}' 
+    force: yes 
+  with_filetree: '../../../secrets/'
+  when: item.state == 'file'
+
+- name: Set AJSCARGS based on namespace
+  set_fact:
+    AJSCARGS: "{{ ajsc_args_map[ANS_NAMESPACE] | default(ajsc_args_map['com-att-attcc-dev-merge']) }}"
+
+- name: Pick the right resource profile for this namespace
+  set_fact:
+    k8s_resources: "{{ resource_map[ANS_NAMESPACE] | default(resource_map['com-att-attcc-dev-merge']) }}"
+
+- name: Expose requests & limits as distinct vars
+  set_fact:
+    att_ms_reources_limits_memory:   "{{ k8s_resources.limits_memory }}"
+    att_ms_reources_requests_memory: "{{ k8s_resources.requests_memory }}"
+    att_ms_reources_limits_cpu:      "{{ k8s_resources.limits_cpu }}"
+    att_ms_reources_requests_cpu:    "{{ k8s_resources.requests_cpu }}"
+
+#values get resolved in this task.
+- name: create service Deployment configuration files
+  tags: configure 
+  template:
+    src: '{{ item.src }}'
+    dest: '{{msname_tmpdir}}/templates/k8s/{{ item.path }}'
+    force: yes
+  with_filetree: ../templates/k8s/
+  when: item.state == 'file'
+
+- name: delete configmap if existing
+  tags: configure
+  shell: |
+      set -x
+      name="{{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-configs"
+      configmap_count=`/usr/bin/kubectl --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} get configmap --namespace={{ANS_NAMESPACE}} | grep -c {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-configs|tee`
+  
+      if [ $configmap_count -gt 0 ]
+      then
+        /usr/bin/kubectl delete \
+          --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+          --namespace={{ANS_NAMESPACE}} \
+          configmap {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-configs
+        echo "delete configmap ${name}"
+      fi
+
+- name: create configmaps all recursively
+  #template: src={{ item }} dest={{msname_tmpdir}}/templates/{{ item.split('templates/')[1] }}
+  tags: configure
+  shell: |
+    set -x
+    name="{{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-configs"
+    /usr/bin/kubectl create  \
+      --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+      --namespace={{ANS_NAMESPACE}} \
+      configmap {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-configs \
+      --from-file={{msname_tmpdir}}/templates/configs
+    echo "create configmap ${name}"
+
+- name: delete secret if existing 
+  tags: configure 
+  shell: |
+      set -x
+      name="{{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-secrets"
+      secret_count=`/usr/bin/kubectl --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} get secret --namespace={{ANS_NAMESPACE}} | grep -c {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-secrets|tee`
+  
+      if [ $secret_count -gt 0 ]
+      then
+        /usr/bin/kubectl delete \
+          --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+          --namespace={{ANS_NAMESPACE}} \
+          secret {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-secrets
+        echo "delete secret ${name}"
+      fi
+ 
+- name: create secret all recursively 
+  tags: configure
+  shell: |
+    set -x
+    name="{{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-secrets"
+    /usr/bin/kubectl create  \
+      --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+      --namespace={{ANS_NAMESPACE}} \
+      secret generic {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-secrets \
+      --from-file={{playbook_dir}}/secrets
+    echo "create secret ${name}"
+
+- name: get routeOffer and write it to a file
+  tags: routeoffer
+  shell: |
+    set -x 
+    routeOfferX="{{ROUTEOFFER}}"
+    filename="{{ROUTEOFFER_FILENAME}}"
+
+    if [ "${filename:-}x" != "x" ]
+    then
+    	echo "${routeOfferX}" > ${filename}
+    else
+        echo "no file name is provided"
+    fi
+
+  register: k8srouteoffer
+  args:
+    executable: /bin/bash
+  
+- debug: var=k8srouteoffer.stdout_lines
+  tags: routeoffer
+
+### OIDC AAF Changes
+- name: delete oidc client secret if existing and create it
+  tags: configure 
+  shell: |
+      set -e
+      name="{{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-oidc-secret"
+      if [ {{ ANS_is_oidc_enabled }}  = "true" ]
+      then
+
+        secret_count=`/usr/bin/kubectl --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} get secret --namespace={{ANS_NAMESPACE}} | grep -c {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-oidc-secret|tee`
+    
+        if [ $secret_count -gt 0 ]
+        then
+          /usr/bin/kubectl delete \
+            --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+            --namespace={{ANS_NAMESPACE}} \
+            secret {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}-oidc-secret
+          echo "delete secret ${name}"
+        fi
+                
+        /usr/bin/kubectl apply \
+          --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+          --namespace={{ANS_NAMESPACE}} \
+          -f {{msname_tmpdir}}/templates/k8s/oidcclient-secret.yaml
+          
+        echo "create secret ${name}"
+      else
+        echo "OIDC Auth is not enabled, so secret is not created - ${name} "
+      fi
+  register: tasksoidc
+
+- debug: var=tasksoidc.stdout_lines
+- debug: var=tasksoidc.stderr_lines
+ 
+### OIDC AAF Changes
+
+ # We can add mutiple kubernetes commands for Deploy
+- name: Apply Deploy using the effective config files
+  tags: deploy
+  shell: |
+    set -x
+    name="{{ANS_NAMESPACE}}"
+    deployfilename=deployment.yaml
+    if [ {{ ANS_is_oidc_enabled }}  = "true" ]
+    then
+      deployfilename=deployment-oidc.yaml
+    fi
+    
+    current_deployments=`/usr/bin/kubectl get --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} --namespace={{ANS_NAMESPACE}} deployments | grep '{{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}' | awk '{print $1}'`
+
+    echo "current deploy with namespace=${name}: ${current_deployments}"
+
+    if [ "$current_deployments" = "{{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}" | "{{ANS_msname}}-arnr3pl-{{version_major_minor}}-{{ROUTEOFFER|lower}}" ]
+      then
+        /usr/bin/kubectl replace \
+          --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+          --namespace={{ANS_NAMESPACE}} \
+          -f {{msname_tmpdir}}/templates/k8s/${deployfilename}
+
+        sleep {{pod_minReadySeconds}}
+
+        /usr/bin/kubectl rollout status \
+          --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+          --namespace={{ANS_NAMESPACE}} \
+          deployment/{{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+    else
+         /usr/bin/kubectl apply \
+          --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+          --namespace={{ANS_NAMESPACE}} \
+          -f {{msname_tmpdir}}/templates/k8s/${deployfilename}
+    fi
+
+    echo "create deploy and pod with namespace=${name} from templates/k8s/${deployfilename}"
+
+    /usr/bin/kubectl apply \
+      --server={{k8_server}} {{ {"":'--username='+k8susername+' --password='+k8spassword}[k8stoken] | default('--token='+k8stoken) }} {{k8_addargs}} \
+      --namespace={{ANS_NAMESPACE}} \
+      -f {{msname_tmpdir}}/templates/k8s/service.yaml
+
+    echo "create service with namespace=${name} from templates/k8s/service.yaml"
+
+  register: tasksmain
+
+- debug: var=tasksmain.stdout_lines
+- debug: var=tasksmain.stderr_lines
+
+- name: removing temporary directory
+  action: command rm -rf {{msname_tmpdir}}

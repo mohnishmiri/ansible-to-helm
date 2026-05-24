@@ -1,0 +1,252 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-arnr3pl-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-arnr3pl
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-arnr3pl
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-calc-vab-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-calc-vab
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-calc-vab
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-dataload-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-dataload
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-dataload
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-rtl-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-rtl
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-rtl
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-ar-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-ar
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-ar
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-nr-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-nr
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-nr
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-3pl-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-3pl
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-3pl
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-nds-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-nds
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-nds
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-sd-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-sd
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-sd
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-fn-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-fn
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-fn
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ANS_msname}}-recalc-dap-{{version_major_minor}}-{{ROUTEOFFER|lower}}
+  namespace: {{ANS_NAMESPACE}}
+  labels:
+    app: {{ANS_app_name}}-recalc-dap
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+spec:
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: {{ANS_app_name}}-recalc-dap
+    version: "{{ANS_VERSION}}"
+    routeoffer: {{ROUTEOFFER}}
+

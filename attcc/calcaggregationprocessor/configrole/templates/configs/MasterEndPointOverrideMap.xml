@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MasterEndPointOverrideMap xsi:schemaLocation="http://csi.cingular.com/CSI/Namespaces/Types/Private/Implementation/MasterEndPointOverrideMap.xsd MasterEndPointOverrideMap.xsd" xmlns="http://csi.cingular.com/CSI/Namespaces/Types/Private/Implementation/MasterEndPointOverrideMap.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<type>CSI-Service</type>
+	<MasterEndpoint>
+		<name>PartnerProfileService</name>
+		<routingType>DME2</routingType>
+		<componentName>com.att.csid.PartnerProfileService</componentName>
+		<version>2</version>
+		<envContext>TEST</envContext>
+		<routeOffer>Q25A</routeOffer>
+	</MasterEndpoint>
+</MasterEndPointOverrideMap>

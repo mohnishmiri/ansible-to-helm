@@ -1,0 +1,24 @@
+---
+- name: 'Deploy {{ANS_msname}} service'
+  hosts: '{{ANS_HOST}}'
+  serial: 50%
+  connection: local
+  roles:
+    - { role: '{{ ANS_ROLE }}' }
+...
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

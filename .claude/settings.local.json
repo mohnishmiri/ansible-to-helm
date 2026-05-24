@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Recurse \"C:\\\\Github\\\\chats\")",
+      "Bash(Select-Object FullName)",
+      "PowerShell(pip install *)",
+      "PowerShell(helm lint *)",
+      "Bash(helm template *)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pytest ansible-to-helm/tests/ -x -q)"
+    ]
+  }
+}

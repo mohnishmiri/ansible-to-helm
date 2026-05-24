@@ -1,0 +1,3 @@
+---
+- src: git+https://${ITServicescredential}@codecloud.web.att.com/
+  version: master

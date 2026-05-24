@@ -1,0 +1,234 @@
+---
+#If passed in jenkinsfile , not required here. 
+#kube_namespace: "{{kube_namespace}}"
+#msname: "{{msname}}"
+msname_tmpdir: "/tmp/{{ANS_msname}}"
+version: "{{ANS_VERSION}}"
+
+version_major_minor: "{{ ANS_label_version.rsplit('-',1)[0] }}"
+
+CSI_CLUSTER: "D6A"
+
+#run.source
+WMQ_ENVCONTEXT: "D"
+
+AJSCARGS: ""
+ajsc_args_map:
+  com-att-attcc-dev-merge:   "-Xms{{dev_min_heap_size}} -Xmx{{dev_max_heap_size}} -XX:MetaspaceSize={{dev_min_metaspace_size}} -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -Dhttp.nonProxyHosts={{non_proxy_hosts}} -Dhttps.nonProxyHosts={{non_proxy_hosts}} -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"
+  com-att-attcc-new-perf:    "-Xms{{perf_min_heap_size}} -Xmx{{perf_max_heap_size}} -XX:MetaspaceSize={{perf_min_metaspace_size}} -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -Dhttp.nonProxyHosts={{non_proxy_hosts}} -Dhttps.nonProxyHosts={{non_proxy_hosts}} -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"
+  com-att-attcc-uat-merge:   "-Xms{{uat_min_heap_size}} -Xmx{{uat_max_heap_size}} -XX:MetaspaceSize={{uat_min_metaspace_size}} -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -Dhttp.nonProxyHosts={{non_proxy_hosts}} -Dhttps.nonProxyHosts={{non_proxy_hosts}} -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"
+  com-att-attcc-preprod:     "-Xms{{preprod_min_heap_size}} -Xmx{{preprod_max_heap_size}} -XX:MetaspaceSize={{preprod_min_metaspace_size}} -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -Dhttp.nonProxyHosts={{non_proxy_hosts}} -Dhttps.nonProxyHosts={{non_proxy_hosts}} -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"
+  com-att-attcc-prod:        "-Xms{{prod_min_heap_size}} -Xmx{{prod_max_heap_size}} -XX:MetaspaceSize={{prod_min_metaspace_size}} -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -Dhttp.nonProxyHosts={{non_proxy_hosts}} -Dhttps.nonProxyHosts={{non_proxy_hosts}} -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"
+  com-att-attcc-dr:          "-Xms{{dr_min_heap_size}} -Xmx{{dr_max_heap_size}} -XX:MetaspaceSize={{dr_min_metaspace_size}} -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -Dhttp.nonProxyHosts={{non_proxy_hosts}} -Dhttps.nonProxyHosts={{non_proxy_hosts}} -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"
+
+#Parameters for Glowroot
+# glowroot server environment
+TAPM_ENV: "{{ tapm_env }}"
+# glowroot T APM APPNAME  (< APPNAME >-< MOTSID > )
+TAPM_APPNAME: "ATTCC-31599"
+# glowroot flag to turn on/off
+GLOWROOT_FLAG: "{{ glowroot_flag }}"
+
+non_proxy_hosts: "*.windows.net"
+
+dev_min_metaspace_size:  "256m"
+dev_max_metaspace_size:  "512m"
+dev_min_heap_size:       "512m"
+dev_max_heap_size:       "2048m"
+
+perf_min_metaspace_size:  "512m"
+perf_max_metaspace_size:  "512m"
+perf_min_heap_size:       "512m"
+perf_max_heap_size:       "2048m"
+
+uat_min_metaspace_size:   "512m"
+uat_max_metaspace_size:   "512m"
+uat_min_heap_size:        "512m"
+uat_max_heap_size:        "2048m"
+
+preprod_min_metaspace_size:   "512m"
+preprod_max_metaspace_size:   "512m"
+preprod_min_heap_size:        "512m"
+preprod_max_heap_size:        "2048m"
+
+prod_min_metaspace_size:   "512m"
+prod_max_metaspace_size:   "512m"
+prod_min_heap_size:        "512m"
+prod_max_heap_size:        "2048m"
+
+dr_min_metaspace_size:   "512m"
+dr_max_metaspace_size:   "512m"
+dr_min_heap_size:        "512m"
+dr_max_heap_size:        "2048m"
+
+#k8
+k8_server: https://{{inventory_hostname}}
+k8_addargs: "--insecure-skip-tls-verify=true"
+
+#deployment.yaml file for system resource limits
+att_ms_reources_requests_memory: ""
+att_ms_reources_requests_cpu: ""
+att_ms_reources_limits_memory: ""
+att_ms_reources_limits_cpu: ""
+
+att_ms_replicas: "1"
+
+resource_map:
+  com-att-attcc-dev-merge:
+    limits_memory:   "2Gi"
+    requests_memory: "1Gi"
+    limits_cpu:      "1024m"
+    requests_cpu:    "512m"
+  com-att-attcc-new-perf:
+    limits_memory:   "4Gi"
+    requests_memory: "2Gi"
+    limits_cpu:      "1024m"
+    requests_cpu:    "512m"
+  com-att-attcc-uat-merge:
+    limits_memory:   "4Gi"
+    requests_memory: "2Gi"
+    limits_cpu:      "1024m"
+    requests_cpu:    "512m"
+  com-att-attcc-preprod:
+    limits_memory:   "4Gi"
+    requests_memory: "2Gi"
+    limits_cpu:      "1024m"
+    requests_cpu:    "512m"
+  com-att-attcc-prod:
+    limits_memory:   "4Gi"
+    requests_memory: "2Gi"
+    limits_cpu:      "1024m"
+    requests_cpu:    "512m"
+  com-att-attcc-dr:
+    limits_memory:   "4Gi"
+    requests_memory: "2Gi"
+    limits_cpu:      "1024m"
+    requests_cpu:    "512m"
+  
+
+#deployment.yml
+k8s_imagepullpolicy: "IfNotPresent"
+k8s_deployment_strategy: "RollingUpdate"
+pod_maxUnavailable: "50%"
+pod_maxSurge: "50%"
+pod_minReadySeconds: "120"
+pod_revisionHistoryLimit: "0"
+
+# timing for readiness
+k8s_readiness_initialDelaySeconds: "110"
+k8s_readiness_periodSeconds: "30"
+k8s_readiness_timeoutSeconds: "30"
+
+# timing for liveness
+k8s_liveness_initialDelaySeconds: "120"
+k8s_liveness_periodSeconds: "30"
+k8s_liveness_timeoutSeconds: "30"
+
+#aft.properties
+com_att_aft_discovery_client_environment: "{{AFTENVIRONMENT}}"
+com_att_aft_discovery_client_latitude: "{{AFTLATITUDE}}"
+com_att_aft_discovery_client_longitude: "{{AFTLONGITUDE}}"
+com_att_aft_keyStore: "/opt/att/ajsc/secret/aft.jks"
+com_att_aft_keyStorePassword: "CHANGEME"
+com_att_aft_trustStore: "/opt/att/ajsc/secret/aft.jks"
+com_att_aft_trustStorePassword: "CHANGEME"
+com_att_aft_alias: "fusionbus"
+
+#cadi.properties
+cadi_basic_realm: "csp.att.com"
+cadi_basic_warn: "TRUE"
+cadi_loglevel: "WARN"
+cadi_keyfile_path: "/opt/att/ajsc/aaf/keyfile"
+
+cadi_protocols: "TLSv1.1,TLSv1.2"
+aaf_env_var: "PROD"
+aaf_test_url_host: "aaftest.test.att.com"
+
+#Modified for AKS deployment migration
+#aaf_url_host: "aaf.it.att.com"
+aaf_url_host: "aaf-azure.it.att.com"
+
+#Modified for AKS deployment migration
+#cadi_aaf_url: "https://{{aaf_url_host}}/locate/com.att.aaf.service:2.0"
+cadi_aaf_url: "https://aaf-azure.it.att.com"
+
+
+cadi_aaf_locate_url: "https://{{aaf_url_host}}/locate"
+cadi_aaf_lur: "com.att.cadi.aaf.v2_0.AAFLurPerm"
+cadi_aaf_oauth2_token_url: "https://{{aaf_url_host}}/locate/com.att.aaf.token:2.0/token"
+cadi_aaf_oauth2_introspect_url: "https://{{aaf_url_host}}/locate/com.att.aaf.introspect:2.0/introspect"
+cadi_aaf_id: "${AAF_ID}"
+cadi_aaf_password: "${AAF_PASSWORD}"
+cadi_aaf_timeout: "5000" 
+AFT_LATITUDE: "{{com_att_aft_discovery_client_latitude}}"
+AFT_LONGITUDE: "{{com_att_aft_discovery_client_longitude}}"
+AFT_ENVIRONMENT: "{{com_att_aft_discovery_client_environment}}"
+
+#logback.xml
+asyncWMQAuditAppender_DestinationName: "queue:///CSILOGQL.M2E.DASHBOARD01.NOT.{{CSI_CLUSTER}}"
+asyncWMQPerfAppender_DestinationName: "queue:///CSILOGQL.M2E.PERFORMANCE01.NOT.{{CSI_CLUSTER}}"
+asyncWmQappender_DestinationName: "queue:///CSILOGQL.M2E.DASHBOARD01.NOT.{{CSI_CLUSTER}}"
+# Mark this as true for enabling 1T Logging
+logging_enable_1T: "true"
+# Mark this as true for enabling 1T Pretty Formatting
+logging_enable_1T_prettyprint: "false"
+# Mark this as true for enabling Legacy Logging
+logging_enable_legacy: "false"
+# Mark this as true for enabling CSI Dashboard Logging
+logging_enable_csidashboard: "false"
+# Mark this as "INFO" for enabling 1T Performance Logging
+#logging_level_performance: "INFO"
+# Mark this as "DEBUG" for enabling 1T Request Logging
+logging_level_request: "OFF"
+# Mark this as "DEBUG" for enabling 1T Response Logging
+logging_level_response: "OFF"
+# Mark this as "ERROR" for enabling 1T Exception Logging
+logging_level_exception: "ERROR"
+# Mark this as "DEBUG" for enabling 1T Custom Logging
+logging_level_custom: "DEBUG"
+# Change this for defining root level Logging
+logging_level_root: "INFO"
+# Below are the log level properties for enabling different legacy loggers
+logging_level_legacy_debug: "INFO"
+logging_level_legacy_interfaces: "DEBUG"
+logging_level_legacy_interfaces_artifactid: "DEBUG"
+logging_level_legacy_interfaces_ppclient: "ERROR"
+logging_level_legacy_interfaces_voltunvolt: "DEBUG"
+logging_level_legacy_interfaces_encryptionproperty: "DEBUG"
+# Below are the log level properties for enabling different framework level loggers
+logging_level_utillib_voltageaccess: "DEBUG"
+logging_level_loggerutility: "DEBUG"
+logging_level_filemonitor: "DEBUG"
+logging_level_dme2_internaljetty: "ERROR"
+logging_level_org_springframework: "ERROR"
+#Use this for enabling security filter in WMQ logging 
+logging_enable_securityfilter: "true"
+
+#spm2.properties
+tibco_clientVar_Config_PartnerProfileServiceRouteOffer: "D6B"
+tibco_clientVar_Config_PartnerProfileServiceEnvContext: "TEST"
+tibco_clientVar_Config_PartnerProfileFilePoller: ""
+tibco_clientVar_Config_PartnerProfileServiceVersion: "2"
+tibco_clientVar_Config_PartnerProfilePollingInterval: "20000"
+
+#wmqLog.properties
+jms_queue_connection_factory: "aftdsc://{{com_att_aft_discovery_client_environment}}/?service=CSILOG,version=4.0,bindingType=fusionBus,envContext=P,{{CSI_CLUSTER}}=YES"
+java_naming_provider_url: "aftdsc://{{com_att_aft_discovery_client_environment}}/{{com_att_aft_discovery_client_latitude}}/{{com_att_aft_discovery_client_longitude}}"
+java_naming_factory_initial: "com.att.aft.jms.FusionCtxFactory"
+jms_session_max: "10"
+jms_delivery_mode: "2"
+jms_timeout: "900000"
+jms_priority: "2"
+
+
+#application.properties
+#logging_level_root: "info"
+mots_application_acronym: "CSI"
+
+server_tomcat_max_threads: "200"
+server_tomcat_min_Spare_Threads: "25"
+server_tomcat_max_idle_time: "60000"
+server_context_parameters_p_name: "value"
+
+# port number for management port (actuator endpoints)
+server_health_port: "8080"

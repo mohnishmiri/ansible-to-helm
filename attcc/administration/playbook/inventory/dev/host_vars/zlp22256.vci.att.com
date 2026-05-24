@@ -1,0 +1,13 @@
+AFTLATITUDE: "32.9"
+AFTLONGITUDE: "-96.7"
+AJSCARGS: "-Xms{{min_heap_size}} -Xmx{{max_heap_size}} -XX:MetaspaceSize={{min_metaspace_size}} -XX:MaxMetaspaceSize={{max_metaspace_size}} -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode -Dhttp.nonProxyHosts=idns.cci.att.com|idns.cip.att.com -Dhttps.nonProxyHosts=idns.cci.att.com|idns.cip.att.com "
+ROUTEOFFER: "D2A"
+ENVCONTEXT: "DEV"
+AFTENVIRONMENT: "AFTUAT"
+STICKYSELECTORKEY: 
+DiscoveryURL: "aftdsc://{{AFTLATITUDE}}/{{AFTLONGITUDE}}/{{AFTENVIRONMENT}}?service=dmeQCF,version=1.0,bindingType=jms,envContext=U"
+VoltageFlag: "off"
+usePPService: "true"
+DEBUG_LEVEL: "INFO"
+FrameworkTimingLevel: "DEBUG"
+att_ms_replicas: "1"
