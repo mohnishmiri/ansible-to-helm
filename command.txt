@@ -10,3 +10,6 @@ helm template calcengine ./ansible-to-helm/helm-output/calcengine \
 -f ./ansible-to-helm/helm-output/calcengine/values.yaml \
 -f ./ansible-to-helm/helm-output/calcengine/envs/perf.yaml > ./ansible-to-helm/helm-output/output.log
 
+helm template administration ./ansible-to-helm/helm-output/administration \
+-f ./ansible-to-helm/helm-output/administration/values.yaml \
+-f ./ansible-to-helm/helm-output/administration/envs/perf.yaml > ./ansible-to-helm/helm-output/output.log

@@ -7,6 +7,18 @@ resources:
   limits:
     memory: 4Gi
     cpu: 1024m
+minReadySeconds: 120
+livenessProbe:
+  initialDelaySeconds: 120
+  periodSeconds: 30
+  timeoutSeconds: 30
+readinessProbe:
+  initialDelaySeconds: 110
+  periodSeconds: 30
+  timeoutSeconds: 30
+tomcat:
+  maxThreads: 200
+  minSpareThreads: 25
 javaOpts: -Xms512m -Xmx2048m -XX:MetaspaceSize=512m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode
   -Dhttp.nonProxyHosts=*.windows.net -Dhttps.nonProxyHosts=*.windows.net -Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl
 envOverrides:

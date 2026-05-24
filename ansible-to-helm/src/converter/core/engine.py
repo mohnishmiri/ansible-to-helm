@@ -54,12 +54,27 @@ class ConversionEngine:
 
         role_parser = RoleParser(self.config.config_role_path)
         role_data = role_parser.parse()
-        self._merge_role_data(parsed, role_data)
 
         inventory_parser = InventoryParser(self.config.playbook_path / "inventory")
         env_configs = inventory_parser.parse()
         for env_name, env_data in env_configs.items():
             parsed.environment_configs[env_name] = env_data
+
+        # Inventory group_vars must take precedence over role defaults — Ansible
+        # itself layers them that way, and per-env values like probe timings live
+        # only in inventory. Overlay dev's inventory on top of defaults so the
+        # base values.yaml reflects dev settings, not the raw role defaults.
+        original_defaults = dict(role_data.get("defaults", {}))
+        base_defaults = dict(original_defaults)
+        dev_cfg = env_configs.get("dev")
+        if dev_cfg:
+            for k, v in dev_cfg.variables.items():
+                base_defaults[k] = v
+        merged_role_data = {**role_data, "defaults": base_defaults}
+        self._merge_role_data(parsed, merged_role_data)
+        # Keep the un-overlaid defaults so config_files placeholder resolution
+        # can still layer each env's inventory on top.
+        parsed.role_defaults = original_defaults
 
         k8s_template_dir = self.config.config_role_path / "templates" / "k8s"
         if k8s_template_dir.exists():
@@ -132,7 +147,6 @@ class ConversionEngine:
             parsed.tomcat_min_spare_threads = int(defaults["server_tomcat_min_Spare_Threads"])
 
         parsed.config_files = role_data.get("config_files", {})
-        parsed.role_defaults = defaults
 
     def _merge_k8s_data(self, parsed, k8s_data):
         if "env_vars" in k8s_data:

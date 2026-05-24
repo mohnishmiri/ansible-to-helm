@@ -100,7 +100,7 @@ affinity:
         - key: nodepool
           operator: In
           values:
-          - default
+          - ruleengine
 env:
 - name: JAVA_OPTS_OVERRIDE
   value: -Xms512m -Xmx2048m -XX:MetaspaceSize=256m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode

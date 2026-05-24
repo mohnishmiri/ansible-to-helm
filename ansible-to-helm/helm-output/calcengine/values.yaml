@@ -60,7 +60,7 @@ livenessProbe:
     httpHeaders:
     - name: X-Custom-Header
       value: Alive
-  initialDelaySeconds: 220
+  initialDelaySeconds: 120
   periodSeconds: 30
   timeoutSeconds: 30
 readinessProbe:
@@ -71,7 +71,7 @@ readinessProbe:
     httpHeaders:
     - name: X-Custom-Header
       value: Ready
-  initialDelaySeconds: 210
+  initialDelaySeconds: 110
   periodSeconds: 30
   timeoutSeconds: 30
 autoscaling:
@@ -100,7 +100,7 @@ affinity:
         - key: nodepool
           operator: In
           values:
-          - default
+          - ruleengine
 env:
 - name: JAVA_OPTS_OVERRIDE
   value: -Xms512m -Xmx2048m -XX:MetaspaceSize=256m -XX:+UseConcMarkSweepGC -XX:+CMSIncrementalMode

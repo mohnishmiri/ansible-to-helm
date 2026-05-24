@@ -54,6 +54,81 @@ class ValuesBuilder:
     def __init__(self, config: ConverterConfig):
         self.config = config
 
+    def _pod_overrides_from_env_vars(self, env_vars: dict[str, str]) -> dict:
+        """Build a values-override dict from inventory variables that mirror the
+        same Ansible keys consumed in `_merge_role_data`. Only fields actually
+        present in `env_vars` are emitted, so callers can layer them per env.
+        """
+        out: dict = {}
+        if "att_ms_replicas" in env_vars:
+            try:
+                out["replicaCount"] = int(env_vars["att_ms_replicas"])
+            except (TypeError, ValueError):
+                pass
+        strategy: dict = {}
+        if "k8s_deployment_strategy" in env_vars:
+            strategy["type"] = env_vars["k8s_deployment_strategy"]
+        rolling: dict = {}
+        if "pod_maxUnavailable" in env_vars:
+            rolling["maxUnavailable"] = env_vars["pod_maxUnavailable"]
+        if "pod_maxSurge" in env_vars:
+            rolling["maxSurge"] = env_vars["pod_maxSurge"]
+        if rolling:
+            strategy["rollingUpdate"] = rolling
+        if strategy:
+            out["deploymentStrategy"] = strategy
+        if "pod_minReadySeconds" in env_vars:
+            try:
+                out["minReadySeconds"] = int(env_vars["pod_minReadySeconds"])
+            except (TypeError, ValueError):
+                pass
+        if "pod_revisionHistoryLimit" in env_vars:
+            try:
+                out["revisionHistoryLimit"] = int(env_vars["pod_revisionHistoryLimit"])
+            except (TypeError, ValueError):
+                pass
+
+        def _probe(prefix: str) -> dict:
+            p: dict = {}
+            for k_var, k_out in (
+                (f"k8s_{prefix}_initialDelaySeconds", "initialDelaySeconds"),
+                (f"k8s_{prefix}_periodSeconds", "periodSeconds"),
+                (f"k8s_{prefix}_timeoutSeconds", "timeoutSeconds"),
+            ):
+                if k_var in env_vars:
+                    try:
+                        p[k_out] = int(env_vars[k_var])
+                    except (TypeError, ValueError):
+                        pass
+            return p
+
+        liveness = _probe("liveness")
+        if liveness:
+            out["livenessProbe"] = liveness
+        readiness = _probe("readiness")
+        if readiness:
+            out["readinessProbe"] = readiness
+
+        tomcat: dict = {}
+        if "server_tomcat_max_threads" in env_vars:
+            try:
+                tomcat["maxThreads"] = int(env_vars["server_tomcat_max_threads"])
+            except (TypeError, ValueError):
+                pass
+        if "server_tomcat_min_Spare_Threads" in env_vars:
+            try:
+                tomcat["minSpareThreads"] = int(env_vars["server_tomcat_min_Spare_Threads"])
+            except (TypeError, ValueError):
+                pass
+        if tomcat:
+            out["tomcat"] = tomcat
+        if "server_health_port" in env_vars:
+            try:
+                out["managementPort"] = int(env_vars["server_health_port"])
+            except (TypeError, ValueError):
+                pass
+        return out
+
     def _build_variants(self, parsed: ParsedAnsibleData, env_name: str | None = None) -> tuple[list[dict], list[dict]]:
         """Build deployment and service variant lists for values.yaml or env overrides."""
         variables = self._merged_vars_for_env(env_name or "dev", parsed)
@@ -238,13 +313,19 @@ class ValuesBuilder:
 
         for env_name in self.config.environments:
             env_data = parsed.environment_configs.get(env_name, None)
+            env_vars = env_data.variables if env_data else {}
             resources = self._get_resources_for_env(env_name, parsed)
 
             env_namespace = ENV_MAP.get(env_name, [self.config.namespace])[0]
 
+            pod_overrides = self._pod_overrides_from_env_vars(env_vars)
+            replica_count = pod_overrides.pop("replicaCount", None)
+            if replica_count is None:
+                replica_count = self._get_replicas_for_env(env_name)
+
             override: dict = {
                 "namespace": env_namespace,
-                "replicaCount": self._get_replicas_for_env(env_name),
+                "replicaCount": replica_count,
                 "resources": {
                     "requests": {
                         "memory": resources.requests_memory,
@@ -256,6 +337,8 @@ class ValuesBuilder:
                     },
                 },
             }
+
+            override.update(pod_overrides)
 
             if self.config.service_type == "java-ajsc":
                 override["javaOpts"] = self._get_jvm_args_for_env(env_name, parsed)
@@ -393,14 +476,19 @@ class ValuesBuilder:
     def _build_affinity(self, parsed: ParsedAnsibleData) -> dict:
         if not parsed.node_affinity_key:
             return {}
+        dev_cfg = parsed.environment_configs.get("dev")
+        key = (dev_cfg.node_affinity_key if dev_cfg and dev_cfg.node_affinity_key
+               else parsed.node_affinity_key or "nodepool")
+        value = (dev_cfg.node_affinity_value if dev_cfg and dev_cfg.node_affinity_value
+                 else parsed.node_affinity_value or "default")
         return {
             "nodeAffinity": {
                 "requiredDuringSchedulingIgnoredDuringExecution": {
                     "nodeSelectorTerms": [{
                         "matchExpressions": [{
-                            "key": "nodepool",
+                            "key": key,
                             "operator": "In",
-                            "values": ["default"],
+                            "values": [value],
                         }]
                     }]
                 }
